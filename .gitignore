@@ -1,0 +1,13 @@
+.DS_Store
+.windsurf/
+.agent/
+.claude/
+.codebuddy/
+.codex/
+.continue/
+.cursor/
+.gemini/
+.github/
+.kiro/
+.qoder/
+.trae/
