@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume-Building</title>
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="brand-block">
+      <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+      <div class="brand-copy">
+        <strong class="product-name">Resume Building</strong>
+        <p>为学生项目、课程实践和实习投递准备的智能简历生成器。</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="language-switch" role="group" aria-label="Language switch">
+        <button id="languageZhBtn" class="language-switch-btn" type="button" data-lang="zh">中文</button>
+        <button id="languageEnBtn" class="language-switch-btn" type="button" data-lang="en">EN</button>
+      </div>
+      <button id="downloadBtn" class="download-btn" type="button">下载 PDF</button>
+    </div>
+  </header>
+
+  <main class="app-layout">
+    <section class="form-panel" aria-label="简历表单">
+      <div class="panel-title">
+        <div>
+          <span class="eyebrow">Resume Editor</span>
+          <h1>填写简历内容</h1>
+        </div>
+        <p>信息会实时同步到右侧 A4 预览。</p>
+      </div>
+
+      <section class="import-panel" aria-label="导入简历文本">
+        <div class="step-heading">
+          <span>Import</span>
+          <h2>导入简历文本</h2>
+        </div>
+        <div class="import-input-grid">
+          <label>
+            粘贴简历内容
+            <textarea id="resumeImportText" rows="6" placeholder="粘贴一整段简历内容，例如姓名、联系方式、教育背景、技能、项目经历等"></textarea>
+          </label>
+          <div class="file-import-box">
+            <div>
+              <span>上传简历文件</span>
+              <small>支持 TXT、DOCX、PDF 文件导入，暂不支持图片格式</small>
+            </div>
+            <button id="openImportModalBtn" class="file-import-button" type="button">导入简历</button>
+            <small id="resumeFileName" class="file-import-name"></small>
+          </div>
+        </div>
+        <div class="import-actions">
+          <p id="importStatus" aria-live="polite"></p>
+          <button id="smartFillBtn" class="import-fill-btn" type="button">智能填充</button>
+        </div>
+      </section>
+
+      <section class="draft-toolbar" aria-label="草稿工具">
+        <button id="saveDraftBtn" class="draft-action-btn draft-action-primary" type="button">保存草稿</button>
+        <button id="fillExampleBtn" class="draft-action-btn" type="button">填充示例</button>
+        <button id="clearFormBtn" class="draft-action-btn draft-action-danger" type="button">清空表单</button>
+      </section>
+
+      <section class="template-picker" aria-label="模板选择">
+        <div class="step-heading">
+          <span>Template</span>
+          <h2>选择模板</h2>
+        </div>
+        <div class="template-options" role="radiogroup" aria-label="简历模板">
+          <label class="template-card is-selected">
+            <input type="radio" name="template" value="classic" checked>
+            <span>Classic</span>
+            <small>ATS 标准</small>
+          </label>
+          <label class="template-card">
+            <input type="radio" name="template" value="modern">
+            <span>Modern</span>
+            <small>互联网分栏</small>
+          </label>
+          <label class="template-card">
+            <input type="radio" name="template" value="minimal">
+            <span>Minimal</span>
+            <small>极简留白</small>
+          </label>
+        </div>
+      </section>
+
+      <form id="resumeForm">
+        <fieldset class="form-step">
+          <legend>
+            <span>01</span>
+            <strong>基本信息</strong>
+          </legend>
+
+          <div class="avatar-upload">
+            <div class="avatar-upload-copy">
+              <span>头像</span>
+              <small>上传一张清晰正面照</small>
+            </div>
+            <label class="avatar-upload-button" for="avatarInput">
+              选择头像
+              <input id="avatarInput" type="file" accept="image/*">
+            </label>
+          </div>
+
+          <label>
+            姓名
+            <input id="name" type="text" placeholder="例如：张小明">
+          </label>
+
+          <label>
+            邮箱
+            <input id="email" type="email" placeholder="name@example.com">
+          </label>
+
+          <label>
+            电话
+            <input id="phone" type="tel" placeholder="138 0000 0000">
+          </label>
+
+          <label>
+            性别
+            <input id="gender" type="text" placeholder="例如：男 / 女">
+          </label>
+
+          <label>
+            年龄
+            <input id="age" type="text" placeholder="例如：21岁">
+          </label>
+
+          <label>
+            城市
+            <input id="city" type="text" placeholder="例如：上海">
+          </label>
+
+          <label>
+            Github / 个人网站
+            <input id="website" type="text" placeholder="github.com/yourname">
+          </label>
+
+          <label class="field-full">
+            个人简介
+            <textarea id="summary" rows="3" placeholder="用 2-3 句话介绍你的优势、兴趣方向和求职目标"></textarea>
+          </label>
+
+          <label class="field-full">
+            个人优势
+            <textarea id="advantages" rows="3" placeholder="例如：学习能力强、工程实践扎实、关注产品体验、能快速适应团队协作"></textarea>
+          </label>
+        </fieldset>
+
+        <fieldset class="form-step">
+          <legend>
+            <span>02</span>
+            <strong>教育背景</strong>
+          </legend>
+
+          <label>
+            学校
+            <input id="school" type="text" placeholder="例如：某某大学">
+          </label>
+
+          <label>
+            专业
+            <input id="major" type="text" placeholder="例如：计算机科学与技术">
+          </label>
+
+          <label>
+            毕业时间
+            <input id="graduation" type="text" placeholder="例如：2027年6月">
+          </label>
+        </fieldset>
+
+        <fieldset class="form-step">
+          <legend>
+            <span>03</span>
+            <strong>求职意向</strong>
+          </legend>
+
+          <label>
+            求职方向
+            <input id="jobTarget" type="text" placeholder="例如：前端开发实习生">
+          </label>
+
+          <label>
+            期望薪资
+            <input id="expectedSalary" type="text" placeholder="例如：8K-12K">
+          </label>
+
+          <label>
+            技术标签
+            <input id="techTags" type="text" placeholder="例如：Vue、React、Node.js、Python">
+          </label>
+        </fieldset>
+
+        <fieldset class="form-step">
+          <legend>
+            <span>04</span>
+            <strong>技能分类</strong>
+          </legend>
+
+          <label>
+            编程语言
+            <textarea id="programmingLanguages" rows="3" placeholder="例如：JavaScript、TypeScript、Python、Java"></textarea>
+          </label>
+
+          <label>
+            Web开发
+            <textarea id="webDevelopment" rows="3" placeholder="例如：HTML、CSS、Vue、React、Node.js"></textarea>
+          </label>
+
+          <label>
+            数据库
+            <textarea id="databases" rows="3" placeholder="例如：MySQL、MongoDB、Redis"></textarea>
+          </label>
+
+          <label>
+            开发工具
+            <textarea id="devTools" rows="3" placeholder="例如：Git、VS Code、Figma、Postman"></textarea>
+          </label>
+
+          <label>
+            AI应用
+            <textarea id="aiApplications" rows="3"
+              placeholder="例如：Prompt Engineering、Cursor、ChatGPT、AI 辅助开发"></textarea>
+          </label>
+        </fieldset>
+
+        <fieldset class="form-step">
+          <legend>
+            <span>05</span>
+            <strong>项目经历</strong>
+          </legend>
+
+          <div class="field-full repeatable-block">
+            <div class="repeatable-heading">
+              <span>项目经历</span>
+              <button id="addProjectBtn" class="add-item-btn" type="button">+ 添加项目</button>
+            </div>
+            <div id="projectItems" class="repeatable-list" aria-label="项目经历列表"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-step">
+          <legend>
+            <span>06</span>
+            <strong>实习经历</strong>
+          </legend>
+
+          <div class="field-full repeatable-block">
+            <div class="repeatable-heading">
+              <span>实习经历</span>
+              <button id="addInternshipBtn" class="add-item-btn" type="button">+ 添加实习</button>
+            </div>
+            <div id="internshipItems" class="repeatable-list" aria-label="实习经历列表"></div>
+          </div>
+        </fieldset>
+
+        <fieldset class="form-step">
+          <legend>
+            <span>07</span>
+            <strong>自我评价</strong>
+          </legend>
+
+          <label class="field-full">
+            自我评价
+            <textarea id="selfEvaluation" rows="4" placeholder="总结你的职业态度、协作方式、学习能力和未来发展方向"></textarea>
+          </label>
+        </fieldset>
+      </form>
+
+      <div id="additionalModulesContainer" class="additional-modules-container" aria-label="已添加模块"></div>
+      <button id="openModuleModalBtn" class="add-module-btn" type="button">+ 添加模块</button>
+    </section>
+
+    <section class="preview-panel" aria-label="简历预览">
+      <div class="preview-toolbar">
+        <div>
+          <span class="eyebrow">Live Preview</span>
+          <strong>实时预览</strong>
+        </div>
+        <small>适合 A4 打印</small>
+      </div>
+      <article id="resumePreview" class="resume-paper template-classic">
+        <div class="resume-head">
+          <div class="resume-profile">
+            <h2 id="previewName">你的姓名</h2>
+            <p class="resume-target" id="previewJobTarget">求职方向</p>
+            <p class="resume-meta-line">
+              <span id="previewGender">性别</span>
+              <span class="divider">|</span>
+              <span id="previewAge">年龄</span>
+              <span class="divider">|</span>
+              <span id="previewCity">城市</span>
+              <span class="divider">|</span>
+              <span id="previewSchoolInline">学校</span>
+              <span class="divider">|</span>
+              <span id="previewMajorInline">专业</span>
+            </p>
+            <p class="resume-contact-line">
+              <span id="previewPhone">电话</span>
+              <span class="divider">|</span>
+              <span id="previewEmail">邮箱</span>
+              <span class="divider">|</span>
+              <span id="previewWebsite">Github / 个人网站</span>
+            </p>
+            <div id="previewTechTags" class="resume-tags" aria-label="技术标签"></div>
+          </div>
+          <img id="previewAvatar" class="resume-avatar" alt="简历头像">
+        </div>
+
+        <section>
+          <h3>求职意向</h3>
+          <div class="resume-intent-list">
+            <p><strong>求职方向：</strong><span id="previewJobTargetSection">求职方向</span></p>
+            <p><strong>目标城市：</strong><span id="previewCitySection">城市</span></p>
+            <p><strong>期望薪资：</strong><span id="previewExpectedSalary">期望薪资</span></p>
+          </div>
+        </section>
+
+        <section>
+          <h3>教育背景</h3>
+          <p>
+            <strong id="previewSchool">学校</strong>
+            <span id="previewMajor">专业</span>
+            <span id="previewGraduation">毕业时间</span>
+          </p>
+        </section>
+
+        <section>
+          <h3>个人优势</h3>
+          <p id="previewAdvantages"></p>
+        </section>
+
+        <section>
+          <h3>个人简介</h3>
+          <p id="previewSummary"></p>
+        </section>
+
+        <section>
+          <h3>专业技能</h3>
+          <div class="resume-skill-groups">
+            <p><strong>编程语言：</strong><span id="previewProgrammingLanguages"></span></p>
+            <p><strong>Web开发：</strong><span id="previewWebDevelopment"></span></p>
+            <p><strong>数据库：</strong><span id="previewDatabases"></span></p>
+            <p><strong>开发工具：</strong><span id="previewDevTools"></span></p>
+            <p><strong>AI应用：</strong><span id="previewAiApplications"></span></p>
+          </div>
+        </section>
+
+        <section>
+          <h3>项目经历</h3>
+          <div id="previewProjects" class="resume-experience-list"></div>
+        </section>
+
+        <section>
+          <h3>实习经历</h3>
+          <div id="previewInternship" class="resume-experience-list"></div>
+        </section>
+
+        <section id="previewSelfEvaluationSection">
+          <h3>自我评价</h3>
+          <p id="previewSelfEvaluation"></p>
+        </section>
+      </article>
+    </section>
+  </main>
+
+  <div id="importModal" class="import-modal" aria-hidden="true">
+    <div class="import-modal-backdrop" data-close-import-modal></div>
+    <section class="import-dialog" role="dialog" aria-modal="true" aria-labelledby="importDialogTitle">
+      <div class="import-dialog-head">
+        <div>
+          <span class="eyebrow">Import Resume</span>
+          <h2 id="importDialogTitle">导入简历</h2>
+        </div>
+        <button id="closeImportModalBtn" class="modal-close-btn" type="button" aria-label="关闭导入弹窗">×</button>
+      </div>
+      <div id="importErrorMessage" class="import-error-message" role="alert" aria-live="assertive"></div>
+      <div id="resumeDropZone" class="resume-drop-zone" role="button" tabindex="0">
+        <input id="resumeFileInput" type="file" accept=".txt,.docx,.pdf">
+        <strong>点击选择文件，或拖拽文件到这里</strong>
+        <span>支持 TXT、DOCX、PDF 文件导入</span>
+        <small>暂不支持图片格式</small>
+      </div>
+      <p class="import-dialog-note">导入成功后，文本会自动放入左侧“导入简历文本”区域。</p>
+    </section>
+  </div>
+
+  <div id="clearConfirmModal" class="clear-confirm-modal" aria-hidden="true">
+    <div class="clear-confirm-backdrop" data-close-clear-modal></div>
+    <section class="clear-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle"
+      aria-describedby="clearConfirmDescription">
+      <h2 id="clearConfirmTitle">确认清空表单？</h2>
+      <p id="clearConfirmDescription">清空后，当前填写内容和本地保存的草稿都将被删除，此操作不可撤销。</p>
+      <div class="clear-confirm-actions">
+        <button id="cancelClearBtn" class="clear-confirm-btn" type="button">取消</button>
+        <button id="confirmClearBtn" class="clear-confirm-btn clear-confirm-danger" type="button">确认清空</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="exportTipModal" class="export-tip-modal" aria-hidden="true">
+    <div class="export-tip-backdrop" data-close-export-modal></div>
+    <section class="export-tip-dialog" role="dialog" aria-modal="true" aria-labelledby="exportTipTitle"
+      aria-describedby="exportTipDescription">
+      <h2 id="exportTipTitle">导出 PDF 提示</h2>
+      <p id="exportTipDescription">打印窗口打开后，请在更多设置中关闭 Headers and footers / 页眉和页脚，再选择“保存为 PDF”。这样可以避免出现页面标题、网址、日期和页码。</p>
+      <div class="export-tip-actions">
+        <button id="confirmExportBtn" class="export-tip-btn export-tip-primary" type="button">知道了，继续导出</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="moduleModal" class="module-modal" aria-hidden="true">
+    <div class="module-modal-backdrop" data-close-module-modal></div>
+    <section class="module-dialog" role="dialog" aria-modal="true" aria-labelledby="moduleDialogTitle">
+      <div class="module-dialog-head">
+        <h2 id="moduleDialogTitle">增加模块</h2>
+        <button id="closeModuleModalBtn" class="modal-close-btn" type="button" aria-label="关闭添加模块弹窗">×</button>
+      </div>
+      <div id="moduleOptions" class="module-options" aria-label="可添加模块"></div>
+    </section>
+  </div>
+
+  <div id="toastMessage" class="toast-message" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="script.js"></script>
+</body>
+
+</html>
