@@ -10,4 +10,6 @@
 .github/
 .kiro/
 .qoder/
-.trae/
+.trae/.roo/
+.opencode/
+.DS_Store
