@@ -10,6 +10,37 @@
 </head>
 
 <body>
+  <section id="mobileGuidePage" class="mobile-guide-page" aria-hidden="true">
+    <div class="mobile-guide-card">
+      <div class="mobile-guide-top">
+        <div class="mobile-guide-logo-wrap">
+          <img class="mobile-guide-logo" src="assets/logo.png" alt="Resume-Building logo">
+        </div>
+        <div class="mobile-guide-language-switch" role="group" aria-label="Language switch">
+          <button id="mobileGuideZhBtn" class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button id="mobileGuideEnBtn" class="language-switch-btn" type="button" data-lang="en">EN</button>
+        </div>
+      </div>
+      <h1 id="mobileGuideTitle">Resume-Building</h1>
+      <p id="mobileGuideSubtitle" class="mobile-guide-subtitle">手机访问，电脑编辑</p>
+      <p id="mobileGuideDescription" class="mobile-guide-description">手机端适合快速访问，电脑端更适合完成简历编辑、实时预览和 PDF 导出。</p>
+      <p id="mobileGuideHint" class="mobile-guide-hint">复制下方链接，在电脑浏览器中打开，继续编辑你的简历</p>
+      <div id="mobileGuideLink" class="mobile-guide-link" aria-label="当前页面链接"></div>
+      <div class="mobile-guide-qr-wrap">
+        <div id="mobileGuideQr" class="mobile-guide-qr" aria-label="二维码区域">
+          <span id="mobileGuideQrLabel">二维码区域</span>
+          <small id="mobileGuideQrFallback">请复制链接到电脑浏览器打开</small>
+        </div>
+      </div>
+      <p id="mobileGuideQrText" class="mobile-guide-qr-text">也可以使用其他设备扫描二维码打开</p>
+      <div class="mobile-guide-actions">
+        <button id="mobileGuideCopyBtn" class="mobile-guide-btn mobile-guide-primary" type="button">复制链接</button>
+        <button id="mobileGuideContinueBtn" class="mobile-guide-btn mobile-guide-secondary"
+          type="button">继续在手机中打开</button>
+      </div>
+    </div>
+  </section>
+
   <header class="app-header">
     <div class="brand-block">
       <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
@@ -431,6 +462,8 @@
   </div>
 
   <div id="toastMessage" class="toast-message" role="status" aria-live="polite"></div>
+  <button id="mobileGuideReturnBtn" class="mobile-guide-return-btn" type="button">返回电脑端引导</button>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="script.js"></script>

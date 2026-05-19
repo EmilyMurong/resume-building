@@ -61,8 +61,20 @@ const downloadBtn = document.getElementById("downloadBtn");
 const languageZhBtn = document.getElementById("languageZhBtn");
 const languageEnBtn = document.getElementById("languageEnBtn");
 const toastMessage = document.getElementById("toastMessage");
+const mobileGuidePage = document.getElementById("mobileGuidePage");
+const mobileGuideLink = document.getElementById("mobileGuideLink");
+const mobileGuideQr = document.getElementById("mobileGuideQr");
+const mobileGuideQrLabel = document.getElementById("mobileGuideQrLabel");
+const mobileGuideQrFallback = document.getElementById("mobileGuideQrFallback");
+const mobileGuideCopyBtn = document.getElementById("mobileGuideCopyBtn");
+const mobileGuideContinueBtn = document.getElementById("mobileGuideContinueBtn");
+const mobileGuideReturnBtn = document.getElementById("mobileGuideReturnBtn");
+const mobileGuideZhBtn = document.getElementById("mobileGuideZhBtn");
+const mobileGuideEnBtn = document.getElementById("mobileGuideEnBtn");
 const storageKey = "studentResumeBuilderData";
 const languageStorageKey = "resumeLanguage";
+const mobileGuideDismissedKey = "mobileGuideDismissed";
+const mobileGuideBreakpoint = 768;
 const translations = {
   zh: {
     langToggle: "EN",
@@ -205,6 +217,16 @@ const translations = {
     exportTipTitle: "导出 PDF 提示",
     exportTipDescription: "打印窗口打开后，请在更多设置中关闭 Headers and footers / 页眉和页脚，再选择“保存为 PDF”。这样可以避免出现页面标题、网址、日期和页码。",
     continueExport: "知道了，继续导出",
+    mobileGuideSubtitle: "手机访问，电脑编辑",
+    mobileGuideDescription: "手机端适合快速访问，电脑端更适合完成简历编辑、实时预览和 PDF 导出。",
+    mobileGuideHint: "复制下方链接，在电脑浏览器中打开，继续编辑你的简历",
+    mobileGuideCopyLink: "复制链接",
+    mobileGuideContinueMobile: "继续在手机中打开",
+    mobileGuideCopied: "链接已复制，请在电脑浏览器中打开。",
+    mobileGuideQrCode: "二维码区域",
+    mobileGuideQrFallback: "请复制链接到电脑浏览器打开",
+    mobileGuideQrText: "也可以使用其他设备扫描二维码打开",
+    mobileGuideReturn: "返回电脑端引导",
     addModuleButton: "+ 添加模块",
     placeholderModule: "请填写模块内容",
     placeholderProjects: "请添加项目经历",
@@ -359,6 +381,16 @@ const translations = {
     exportTipTitle: "PDF Export Notice",
     exportTipDescription: "When the print window opens, please turn off Headers and footers in More settings, then choose “Save as PDF”.",
     continueExport: "Got it, continue exporting",
+    mobileGuideSubtitle: "Mobile Access, Desktop Editing",
+    mobileGuideDescription: "Mobile is suitable for quick access, while desktop is recommended for full resume editing, live preview, and PDF export.",
+    mobileGuideHint: "Copy the link below and open it in your desktop browser to continue editing your resume",
+    mobileGuideCopyLink: "Copy Link",
+    mobileGuideContinueMobile: "Continue on Mobile",
+    mobileGuideCopied: "Link copied. Please open it in your desktop browser.",
+    mobileGuideQrCode: "QR Code",
+    mobileGuideQrFallback: "Copy the link and open it in your desktop browser.",
+    mobileGuideQrText: "You can also scan the QR code with another device",
+    mobileGuideReturn: "Desktop Guide",
     addModuleButton: "+ Add Section",
     placeholderModule: "Please fill in this section",
     placeholderProjects: "Please add projects",
@@ -643,6 +675,189 @@ function setLegendText(fieldsetIndex, value) {
   }
 }
 
+// Mobile guide is an overlay only for narrow screens; desktop editor behavior stays unchanged.
+function getCurrentPageUrl() {
+  return window.location.href;
+}
+
+function isMobileViewport() {
+  return window.innerWidth < mobileGuideBreakpoint;
+}
+
+function isMobileGuideDismissed() {
+  return sessionStorage.getItem(mobileGuideDismissedKey) === "true";
+}
+
+function isMobileEditorHistoryState() {
+  return Boolean(window.history.state && window.history.state.mobileEditor);
+}
+
+function setMobileGuideVisible(isVisible) {
+  if (!mobileGuidePage) {
+    return;
+  }
+
+  mobileGuidePage.classList.toggle("is-visible", isVisible);
+  mobileGuidePage.setAttribute("aria-hidden", String(!isVisible));
+  document.body.classList.toggle("mobile-guide-active", isVisible);
+  updateMobileGuideReturnButton();
+}
+
+function shouldShowMobileGuide() {
+  return isMobileViewport() && !(isMobileGuideDismissed() && isMobileEditorHistoryState());
+}
+
+function shouldShowMobileGuideReturnButton() {
+  return isMobileViewport()
+    && isMobileGuideDismissed()
+    && !mobileGuidePage.classList.contains("is-visible");
+}
+
+function updateMobileGuideReturnButton() {
+  if (!mobileGuideReturnBtn || !mobileGuidePage) {
+    return;
+  }
+
+  mobileGuideReturnBtn.classList.toggle("is-visible", shouldShowMobileGuideReturnButton());
+}
+
+function updateMobileGuideLanguage() {
+  if (!mobileGuidePage) {
+    return;
+  }
+
+  setText("#mobileGuideSubtitle", t("mobileGuideSubtitle"));
+  setText("#mobileGuideDescription", t("mobileGuideDescription"));
+  setText("#mobileGuideHint", t("mobileGuideHint"));
+  setText("#mobileGuideQrText", t("mobileGuideQrText"));
+  setText("#mobileGuideCopyBtn", t("mobileGuideCopyLink"));
+  setText("#mobileGuideContinueBtn", t("mobileGuideContinueMobile"));
+  setText("#mobileGuideReturnBtn", t("mobileGuideReturn"));
+
+  if (mobileGuideQrLabel) {
+    mobileGuideQrLabel.textContent = t("mobileGuideQrCode");
+  }
+
+  if (mobileGuideQrFallback) {
+    mobileGuideQrFallback.textContent = t("mobileGuideQrFallback");
+  }
+
+  mobileGuideZhBtn.classList.toggle("is-active", currentLanguage === "zh");
+  mobileGuideEnBtn.classList.toggle("is-active", currentLanguage === "en");
+  mobileGuideZhBtn.setAttribute("aria-pressed", String(currentLanguage === "zh"));
+  mobileGuideEnBtn.setAttribute("aria-pressed", String(currentLanguage === "en"));
+}
+
+function renderMobileGuideQr() {
+  if (!mobileGuideQr || mobileGuideQr.dataset.rendered === "true" || typeof window.QRCode !== "function") {
+    return;
+  }
+
+  mobileGuideQr.innerHTML = "";
+
+  try {
+    new window.QRCode(mobileGuideQr, {
+      text: getCurrentPageUrl(),
+      width: 144,
+      height: 144,
+      colorDark: "#111827",
+      colorLight: "#ffffff",
+      correctLevel: window.QRCode.CorrectLevel.M
+    });
+    mobileGuideQr.dataset.rendered = "true";
+  } catch (error) {
+    mobileGuideQr.append(mobileGuideQrLabel, mobileGuideQrFallback);
+  }
+}
+
+function initMobileGuide() {
+  if (!mobileGuidePage) {
+    return;
+  }
+
+  mobileGuideLink.textContent = getCurrentPageUrl();
+  updateMobileGuideLanguage();
+  renderMobileGuideQr();
+
+  if (isMobileViewport() && isMobileGuideDismissed() && !isMobileEditorHistoryState()) {
+    sessionStorage.removeItem(mobileGuideDismissedKey);
+  }
+
+  setMobileGuideVisible(shouldShowMobileGuide());
+  updateMobileGuideReturnButton();
+}
+
+function checkMobileGuideVisibility() {
+  if (!mobileGuidePage) {
+    return;
+  }
+
+  if (!isMobileViewport()) {
+    setMobileGuideVisible(false);
+  } else {
+    setMobileGuideVisible(shouldShowMobileGuide());
+  }
+
+  updateMobileGuideReturnButton();
+
+  if (isMobileViewport()) {
+    renderMobileGuideQr();
+  }
+}
+
+async function copyMobileGuideLink() {
+  const pageUrl = getCurrentPageUrl();
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(pageUrl);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = pageUrl;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.left = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+
+    showToast(t("mobileGuideCopied"));
+  } catch (error) {
+    showErrorToast(t("mobileGuideHint"));
+  }
+}
+
+function dismissMobileGuide() {
+  sessionStorage.setItem(mobileGuideDismissedKey, "true");
+  setMobileGuideVisible(false);
+
+  if (isMobileViewport() && !isMobileEditorHistoryState()) {
+    window.history.pushState({ mobileEditor: true }, "", getCurrentPageUrl());
+  }
+}
+
+function restoreMobileGuide() {
+  sessionStorage.removeItem(mobileGuideDismissedKey);
+  renderMobileGuideQr();
+  setMobileGuideVisible(true);
+
+  if (isMobileEditorHistoryState()) {
+    window.history.replaceState({ mobileGuide: true }, "", getCurrentPageUrl());
+  }
+}
+
+function handleMobileGuidePopState() {
+  if (!isMobileViewport() || !isMobileGuideDismissed()) {
+    return;
+  }
+
+  sessionStorage.removeItem(mobileGuideDismissedKey);
+  renderMobileGuideQr();
+  setMobileGuideVisible(true);
+}
+
 function updateStaticLanguage() {
   document.documentElement.lang = currentLanguage === "en" ? "en" : "zh-CN";
   document.title = "Resume-Building";
@@ -682,6 +897,7 @@ function updateStaticLanguage() {
   setText("#confirmExportBtn", t("continueExport"));
   setText(".avatar-upload-copy span", t("photo"));
   setLabelText("avatarInput", t("choosePhoto"));
+  updateMobileGuideLanguage();
 
   const placeholders = {
     resumeImportText: "pastePlaceholder",
@@ -2838,17 +3054,41 @@ templateRadios.forEach((radio) => {
   });
 });
 
-document.querySelector(".language-switch").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-lang]");
-
-  if (!button || button.dataset.lang === currentLanguage) {
+function changeLanguage(language) {
+  if (language === currentLanguage) {
     return;
   }
 
-  currentLanguage = button.dataset.lang;
+  currentLanguage = language;
   localStorage.setItem(languageStorageKey, currentLanguage);
   updateLanguage();
+}
+
+document.querySelector(".language-switch").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-lang]");
+
+  if (!button) {
+    return;
+  }
+
+  changeLanguage(button.dataset.lang);
 });
+
+document.querySelector(".mobile-guide-language-switch").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-lang]");
+
+  if (!button) {
+    return;
+  }
+
+  changeLanguage(button.dataset.lang);
+});
+
+mobileGuideCopyBtn.addEventListener("click", copyMobileGuideLink);
+mobileGuideContinueBtn.addEventListener("click", dismissMobileGuide);
+mobileGuideReturnBtn.addEventListener("click", restoreMobileGuide);
+window.addEventListener("resize", checkMobileGuideVisibility);
+window.addEventListener("popstate", handleMobileGuidePopState);
 
 downloadBtn.addEventListener("click", () => {
   if (!hasEnoughResumeContent()) {
@@ -2870,3 +3110,4 @@ updatePreview();
 updateAvatarPreview();
 updateTemplateSelection();
 updateLanguage();
+initMobileGuide();
