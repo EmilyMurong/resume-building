@@ -64,10 +64,14 @@ const landingPage = document.getElementById("landingPage");
 const mobileGuide = document.getElementById("mobileGuide");
 const editorView = document.getElementById("editorView");
 const startBuildingBtn = document.getElementById("startBuildingBtn");
+const openScanConnectBtn = document.getElementById("openScanConnectBtn");
+const scanConnectModal = document.getElementById("scanConnectModal");
+const closeScanConnectBtn = document.getElementById("closeScanConnectBtn");
+const desktopQrCode = document.getElementById("desktopQrCode");
+const desktopQrLink = document.getElementById("desktopQrLink");
 const backHomeBtn = document.getElementById("backHomeBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
-const continueMobileBtn = document.getElementById("continueMobileBtn");
-const mobileBackGuideBtn = document.getElementById("mobileBackGuideBtn");
+const mobileGuideHomeBtn = document.getElementById("mobileGuideHomeBtn");
 const mobileQrImage = document.getElementById("mobileQrImage");
 const currentLinkText = document.getElementById("currentLinkText");
 const generateConnectionCodeBtn = document.getElementById("generateConnectionCodeBtn");
@@ -82,12 +86,15 @@ const languageStorageKey = "resumeLanguage";
 const cloudSessionStorageKey = "studentResumeBuilderCloudSession";
 const supabaseFunctionsUrl = "https://ybbzgfhponocbjzsmldz.supabase.co/functions/v1";
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InliYnpnZmhwb25vY2JqenNtbGR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNjAwMTUsImV4cCI6MjA5NDgzNjAxNX0.Al4EzSa1sUGnYAtuBfQlEDn49sqv7liV-HIbixkgjjM";
+const productionMobileGuideUrl = "https://emilymurong.github.io/resume-building/?mode=mobile";
 const translations = {
   zh: {
     langToggle: "EN",
     landingSubtitle: "手机访问，电脑编辑，快速生成专业简历",
     landingDescription: "支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。",
     startBuilding: "开始创建简历",
+    scanConnectPhone: "扫码连接手机",
+    scanConnectTitle: "扫码连接手机",
     coreFeaturesTitle: "核心功能",
     featureImportTitle: "文件导入",
     featureImportText: "支持 TXT、DOCX、PDF 简历导入",
@@ -105,8 +112,7 @@ const translations = {
     mobileGuideDescription: "复制下方链接，在电脑浏览器中打开，继续编辑你的简历",
     mobileGuideNote: "也可以使用其他设备扫描二维码打开",
     copyLink: "复制链接",
-    continueOnMobile: "继续在手机中打开",
-    backDesktopGuide: "返回电脑端引导",
+    mobileGuideHome: "返回首页",
     connectionCodeLabel: "输入连接码",
     connectionCodePlaceholder: "6 位数字",
     connectCloudDraft: "连接草稿",
@@ -279,6 +285,8 @@ const translations = {
     landingSubtitle: "Mobile access, desktop editing, and smart resume export",
     landingDescription: "Import TXT, DOCX, or PDF resumes, auto-fill your form, preview in real time, switch templates, and export as PDF.",
     startBuilding: "Start Building",
+    scanConnectPhone: "Scan to Connect",
+    scanConnectTitle: "Scan to Connect Phone",
     coreFeaturesTitle: "Core Features",
     featureImportTitle: "Resume Import",
     featureImportText: "Import resumes from TXT, DOCX, and PDF files",
@@ -296,8 +304,7 @@ const translations = {
     mobileGuideDescription: "Copy the link below and open it in your desktop browser to continue editing your resume",
     mobileGuideNote: "You can also scan the QR code with another device",
     copyLink: "Copy Link",
-    continueOnMobile: "Continue on Mobile",
-    backDesktopGuide: "Back to Desktop Guide",
+    mobileGuideHome: "Back Home",
     connectionCodeLabel: "Connection Code",
     connectionCodePlaceholder: "6 digits",
     connectCloudDraft: "Connect Draft",
@@ -601,10 +608,13 @@ let importedResumeSource = "";
 let currentLanguage = localStorage.getItem(languageStorageKey) === "en" ? "en" : "zh";
 let currentView = "";
 let cloudSession = loadCloudSession();
+let mobileModeHomeOverride = false;
 const desktopBreakpoint = 1024;
+const isMobileModeFromUrl =
+  new URLSearchParams(window.location.search).get("mode") === "mobile";
 
 function isDesktopViewport() {
-  return window.innerWidth >= desktopBreakpoint;
+  return !isMobileModeFromUrl && window.innerWidth >= desktopBreakpoint;
 }
 
 function getValue(fieldName) {
@@ -755,15 +765,68 @@ function getShareUrl() {
   return window.location.href.split("#")[0];
 }
 
+function getMobileModeUrl() {
+  const localHosts = ["127.0.0.1", "localhost"];
+
+  if (localHosts.includes(window.location.hostname)) {
+    return productionMobileGuideUrl;
+  }
+
+  const url = new URL(window.location.href);
+  url.hash = "";
+  url.search = "";
+  url.searchParams.set("mode", "mobile");
+
+  return url.toString();
+}
+
+function renderQrToImage(image, text) {
+  if (window.QRCode?.toDataURL) {
+    window.QRCode.toDataURL(
+      text,
+      {
+        errorCorrectionLevel: "L",
+        margin: 4,
+        width: 320
+      },
+      (error, dataUrl) => {
+        if (!error) {
+          image.src = dataUrl;
+        }
+      },
+    );
+  }
+}
+
 function updateMobileGuideLink() {
-  const shareUrl = getShareUrl();
+  const shareUrl = getMobileModeUrl();
 
   if (currentLinkText) {
     currentLinkText.textContent = shareUrl;
   }
 
   if (mobileQrImage) {
-    mobileQrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=10&data=${encodeURIComponent(shareUrl)}`;
+    renderQrToImage(mobileQrImage, shareUrl);
+  }
+}
+
+function renderDesktopQr() {
+  const mobileUrl = getMobileModeUrl();
+
+  desktopQrLink.textContent = mobileUrl;
+
+  if (window.QRCode?.toString) {
+    window.QRCode.toString(
+      mobileUrl,
+      {
+        type: "svg",
+        errorCorrectionLevel: "L",
+        margin: 4
+      },
+      (error, svg) => {
+        desktopQrCode.innerHTML = error ? "" : svg;
+      },
+    );
   }
 }
 
@@ -792,6 +855,16 @@ function showView(viewName) {
 }
 
 function showDefaultEntryView() {
+  if (isMobileModeFromUrl && mobileModeHomeOverride) {
+    showView("landing");
+    return;
+  }
+
+  if (isMobileModeFromUrl && !mobileModeHomeOverride) {
+    showView("mobileGuide");
+    return;
+  }
+
   showView(isDesktopViewport() ? "landing" : "mobileGuide");
 }
 
@@ -867,6 +940,19 @@ function closeExportTipModal() {
   downloadBtn.focus();
 }
 
+function openScanConnectModal() {
+  renderDesktopQr();
+  scanConnectModal.classList.add("is-open");
+  scanConnectModal.setAttribute("aria-hidden", "false");
+  closeScanConnectBtn.focus();
+}
+
+function closeScanConnectModal() {
+  scanConnectModal.classList.remove("is-open");
+  scanConnectModal.setAttribute("aria-hidden", "true");
+  openScanConnectBtn.focus();
+}
+
 function openModuleModal() {
   renderModuleOptions();
   moduleModal.classList.add("is-open");
@@ -934,13 +1020,14 @@ function updateStaticLanguage() {
   setText(".landing-subtitle", t("landingSubtitle"));
   setText(".landing-description", t("landingDescription"));
   setText("#startBuildingBtn", t("startBuilding"));
+  setText("#openScanConnectBtn", t("scanConnectPhone"));
+  setText("#scanConnectTitle", t("scanConnectTitle"));
   setText("#coreFeaturesTitle", t("coreFeaturesTitle"));
   setText("#mobileGuideTitle", t("mobileGuideTitle"));
   setText(".mobile-guide-description", t("mobileGuideDescription"));
   setText(".mobile-guide-note", t("mobileGuideNote"));
   setText("#copyLinkBtn", t("copyLink"));
-  setText("#continueMobileBtn", t("continueOnMobile"));
-  setText("#mobileBackGuideBtn", t("backDesktopGuide"));
+  setText("#mobileGuideHomeBtn", t("mobileGuideHome"));
   setText(".connection-panel label", t("connectionCodeLabel"));
   setText("#connectCloudDraftBtn", t("connectCloudDraft"));
   setText("#generateConnectionCodeBtn", t("generateConnectionCode"));
@@ -3026,8 +3113,19 @@ exportTipModal.addEventListener("click", (event) => {
   }
 });
 
+scanConnectModal.addEventListener("click", (event) => {
+  if (event.target.matches("[data-close-scan-connect-modal]")) {
+    closeScanConnectModal();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") {
+    return;
+  }
+
+  if (scanConnectModal.classList.contains("is-open")) {
+    closeScanConnectModal();
     return;
   }
 
@@ -3209,12 +3307,17 @@ startBuildingBtn.addEventListener("click", () => {
   showView("editor");
 });
 
-continueMobileBtn.addEventListener("click", () => {
-  showView("editor");
+openScanConnectBtn.addEventListener("click", () => {
+  openScanConnectModal();
 });
 
-mobileBackGuideBtn.addEventListener("click", () => {
-  showView("mobileGuide");
+closeScanConnectBtn.addEventListener("click", () => {
+  closeScanConnectModal();
+});
+
+mobileGuideHomeBtn.addEventListener("click", () => {
+  mobileModeHomeOverride = true;
+  showView("landing");
 });
 
 backHomeBtn.addEventListener("click", () => {
@@ -3222,7 +3325,7 @@ backHomeBtn.addEventListener("click", () => {
 });
 
 copyLinkBtn.addEventListener("click", async () => {
-  const shareUrl = getShareUrl();
+  const shareUrl = getMobileModeUrl();
 
   try {
     await navigator.clipboard.writeText(shareUrl);

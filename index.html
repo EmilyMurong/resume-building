@@ -28,7 +28,10 @@
           <h1 id="landingTitle">Resume-Building</h1>
           <p class="landing-subtitle">手机访问，电脑编辑，快速生成专业简历</p>
           <p class="landing-description">支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。</p>
-          <button id="startBuildingBtn" class="landing-primary-btn" type="button">开始创建简历</button>
+          <div class="landing-action-row">
+            <button id="startBuildingBtn" class="landing-primary-btn" type="button">开始创建简历</button>
+            <button id="openScanConnectBtn" class="guide-secondary-btn" type="button">扫码连接手机</button>
+          </div>
           <div class="connection-panel" aria-label="输入连接码">
             <label for="connectionCodeInput">输入连接码</label>
             <div class="connection-input-row">
@@ -96,14 +99,13 @@
         </div>
         <p id="currentLinkText" class="current-link"></p>
         <div class="cloud-code-panel" aria-label="云端连接码">
-          <button id="generateConnectionCodeBtn" class="guide-secondary-btn" type="button">生成连接码</button>
+          <button id="generateConnectionCodeBtn" class="landing-primary-btn" type="button">生成连接码</button>
           <p id="connectionCodeText" class="connection-code-text" aria-live="polite"></p>
           <p id="mobileCloudStatus" class="connection-status" aria-live="polite"></p>
         </div>
         <div class="mobile-guide-actions">
           <button id="copyLinkBtn" class="guide-secondary-btn" type="button">复制链接</button>
-          <button id="continueMobileBtn" class="landing-primary-btn" type="button">继续在手机中打开</button>
-          <button id="mobileBackGuideBtn" class="guide-link-btn" type="button">返回电脑端引导</button>
+          <button id="mobileGuideHomeBtn" class="landing-primary-btn" type="button">返回首页</button>
         </div>
       </div>
     </div>
@@ -532,9 +534,22 @@
     </section>
   </div>
 
+  <div id="scanConnectModal" class="scan-connect-modal" aria-hidden="true">
+    <div class="scan-connect-backdrop" data-close-scan-connect-modal></div>
+    <section class="scan-connect-dialog" role="dialog" aria-modal="true" aria-labelledby="scanConnectTitle">
+      <div class="scan-connect-head">
+        <h2 id="scanConnectTitle">扫码连接手机</h2>
+        <button id="closeScanConnectBtn" class="modal-close-btn" type="button" aria-label="关闭扫码连接弹窗">×</button>
+      </div>
+      <div id="desktopQrCode" class="desktop-qr-code" aria-label="手机连接二维码"></div>
+      <p id="desktopQrLink" class="current-link"></p>
+    </section>
+  </div>
+
   <div id="toastMessage" class="toast-message" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="script.js"></script>
 </body>
 

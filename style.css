@@ -143,8 +143,21 @@ body.view-editor .editor-view {
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
 }
 
+.landing-action-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.landing-action-row .landing-primary-btn,
+.landing-action-row .guide-secondary-btn {
+  width: auto;
+  margin-top: 0;
+}
+
 .landing-primary-btn {
-  justify-self: start;
   margin-top: 6px;
   border: 1px solid var(--primary);
   color: #ffffff;
@@ -318,10 +331,21 @@ body.view-editor .editor-view {
   overflow-wrap: anywhere;
 }
 
+.desktop-qr-code svg {
+  display: block;
+  width: min(260px, 68vw);
+  height: auto;
+}
+
 .cloud-code-panel {
   display: grid;
   width: 100%;
   gap: 8px;
+}
+
+.cloud-code-panel .landing-primary-btn {
+  width: 100%;
+  margin-top: 0;
 }
 
 .connection-code-text {
@@ -743,6 +767,54 @@ textarea:focus-visible {
   pointer-events: none;
   transform: translateY(8px);
   transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.scan-connect-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: none;
+  place-items: center;
+  padding: 18px;
+}
+
+.scan-connect-modal.is-open {
+  display: grid;
+}
+
+.scan-connect-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.42);
+}
+
+.scan-connect-dialog {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  width: min(380px, 100%);
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 8px;
+  padding: 18px;
+  background: #ffffff;
+  box-shadow: var(--shadow);
+}
+
+.scan-connect-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.scan-connect-head h2 {
+  margin: 0;
+  color: var(--heading);
+  font-size: 18px;
+  line-height: 1.25;
 }
 
 .toast-message.is-visible {
@@ -2028,10 +2100,6 @@ textarea:focus {
 }
 
 @media (max-width: 640px) {
-  .landing-page {
-    display: none !important;
-  }
-
   .mobile-guide {
     padding: 14px;
   }
@@ -2150,6 +2218,7 @@ textarea:focus {
   .clear-confirm-modal,
   .export-tip-modal,
   .module-modal,
+  .scan-connect-modal,
   .toast-message {
     display: none;
   }
