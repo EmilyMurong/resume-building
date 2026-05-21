@@ -10,24 +10,125 @@
 </head>
 
 <body>
-  <header class="app-header">
-    <div class="brand-block">
-      <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
-      <div class="brand-copy">
-        <strong class="product-name">Resume Building</strong>
-        <p>为学生项目、课程实践和实习投递准备的智能简历生成器。</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <div class="language-switch" role="group" aria-label="Language switch">
-        <button id="languageZhBtn" class="language-switch-btn" type="button" data-lang="zh">中文</button>
-        <button id="languageEnBtn" class="language-switch-btn" type="button" data-lang="en">EN</button>
-      </div>
-      <button id="downloadBtn" class="download-btn" type="button">下载 PDF</button>
-    </div>
-  </header>
+  <section id="landingPage" class="landing-page page-view" aria-labelledby="landingTitle">
+    <div class="landing-shell">
+      <nav class="landing-nav" aria-label="Landing navigation">
+        <div class="brand-block">
+          <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+          <strong class="product-name">Resume-Building</strong>
+        </div>
+        <div class="language-switch" role="group" aria-label="Language switch">
+          <button class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button class="language-switch-btn" type="button" data-lang="en">EN</button>
+        </div>
+      </nav>
 
-  <main class="app-layout">
+      <div class="landing-hero">
+        <div class="landing-hero-copy">
+          <h1 id="landingTitle">Resume-Building</h1>
+          <p class="landing-subtitle">手机访问，电脑编辑，快速生成专业简历</p>
+          <p class="landing-description">支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。</p>
+          <button id="startBuildingBtn" class="landing-primary-btn" type="button">开始创建简历</button>
+          <div class="connection-panel" aria-label="输入连接码">
+            <label for="connectionCodeInput">输入连接码</label>
+            <div class="connection-input-row">
+              <input id="connectionCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+              <button id="connectCloudDraftBtn" class="guide-secondary-btn" type="button">连接草稿</button>
+            </div>
+            <p id="connectionStatus" class="connection-status" aria-live="polite"></p>
+          </div>
+        </div>
+      </div>
+
+      <section class="core-features" aria-labelledby="coreFeaturesTitle">
+        <div class="core-features-head">
+          <h2 id="coreFeaturesTitle">核心功能</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <strong>文件导入</strong>
+            <p>支持 TXT、DOCX、PDF 简历导入</p>
+          </article>
+          <article class="feature-card">
+            <strong>智能填充</strong>
+            <p>自动识别信息并填充表单</p>
+          </article>
+          <article class="feature-card">
+            <strong>实时预览</strong>
+            <p>右侧 A4 简历实时同步</p>
+          </article>
+          <article class="feature-card">
+            <strong>模板切换</strong>
+            <p>支持 Classic、Modern、Minimal 模板</p>
+          </article>
+          <article class="feature-card">
+            <strong>PDF 导出</strong>
+            <p>一键导出可投递的 PDF 简历</p>
+          </article>
+          <article class="feature-card">
+            <strong>手机端引导</strong>
+            <p>手机访问时可复制链接到电脑继续编辑</p>
+          </article>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section id="mobileGuide" class="mobile-guide page-view" aria-labelledby="mobileGuideTitle">
+    <div class="mobile-guide-shell">
+      <div class="mobile-guide-top">
+        <div class="brand-block">
+          <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+          <strong class="product-name">Resume-Building</strong>
+        </div>
+        <div class="language-switch" role="group" aria-label="Language switch">
+          <button class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button class="language-switch-btn" type="button" data-lang="en">EN</button>
+        </div>
+      </div>
+
+      <div class="mobile-guide-card">
+        <h1 id="mobileGuideTitle">手机访问，电脑编辑</h1>
+        <p class="mobile-guide-description">复制下方链接，在电脑浏览器中打开，继续编辑你的简历</p>
+        <p class="mobile-guide-note">也可以使用其他设备扫描二维码打开</p>
+        <div class="qr-frame">
+          <img id="mobileQrImage" alt="Resume-Building QR code">
+        </div>
+        <p id="currentLinkText" class="current-link"></p>
+        <div class="cloud-code-panel" aria-label="云端连接码">
+          <button id="generateConnectionCodeBtn" class="guide-secondary-btn" type="button">生成连接码</button>
+          <p id="connectionCodeText" class="connection-code-text" aria-live="polite"></p>
+          <p id="mobileCloudStatus" class="connection-status" aria-live="polite"></p>
+        </div>
+        <div class="mobile-guide-actions">
+          <button id="copyLinkBtn" class="guide-secondary-btn" type="button">复制链接</button>
+          <button id="continueMobileBtn" class="landing-primary-btn" type="button">继续在手机中打开</button>
+          <button id="mobileBackGuideBtn" class="guide-link-btn" type="button">返回电脑端引导</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="editorView" class="editor-view page-view">
+    <header class="app-header">
+      <div class="brand-block">
+        <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+        <div class="brand-copy">
+          <strong class="product-name">Resume Building</strong>
+          <p>为学生项目、课程实践和实习投递准备的智能简历生成器。</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="backHomeBtn" class="back-home-btn" type="button">← 返回首页</button>
+        <div class="language-switch" role="group" aria-label="Language switch">
+          <button id="languageZhBtn" class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button id="languageEnBtn" class="language-switch-btn" type="button" data-lang="en">EN</button>
+        </div>
+        <button id="downloadBtn" class="download-btn" type="button">下载 PDF</button>
+      </div>
+    </header>
+
+    <main class="app-layout">
     <section class="form-panel" aria-label="简历表单">
       <div class="panel-title">
         <div>
@@ -371,7 +472,8 @@
         </section>
       </article>
     </section>
-  </main>
+    </main>
+  </div>
 
   <div id="importModal" class="import-modal" aria-hidden="true">
     <div class="import-modal-backdrop" data-close-import-modal></div>
