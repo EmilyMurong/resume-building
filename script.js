@@ -60,12 +60,74 @@ const confirmExportBtn = document.getElementById("confirmExportBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 const languageZhBtn = document.getElementById("languageZhBtn");
 const languageEnBtn = document.getElementById("languageEnBtn");
+const landingPage = document.getElementById("landingPage");
+const mobileGuide = document.getElementById("mobileGuide");
+const editorView = document.getElementById("editorView");
+const startBuildingBtn = document.getElementById("startBuildingBtn");
+const openScanConnectBtn = document.getElementById("openScanConnectBtn");
+const scanConnectModal = document.getElementById("scanConnectModal");
+const closeScanConnectBtn = document.getElementById("closeScanConnectBtn");
+const desktopQrCode = document.getElementById("desktopQrCode");
+const desktopQrLink = document.getElementById("desktopQrLink");
+const backHomeBtn = document.getElementById("backHomeBtn");
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+const mobileGuideHomeBtn = document.getElementById("mobileGuideHomeBtn");
+const mobileQrImage = document.getElementById("mobileQrImage");
+const currentLinkText = document.getElementById("currentLinkText");
+const generateConnectionCodeBtn = document.getElementById("generateConnectionCodeBtn");
+const connectionCodeText = document.getElementById("connectionCodeText");
+const mobileCloudStatus = document.getElementById("mobileCloudStatus");
+const connectionCodeInput = document.getElementById("connectionCodeInput");
+const connectCloudDraftBtn = document.getElementById("connectCloudDraftBtn");
+const connectionStatus = document.getElementById("connectionStatus");
 const toastMessage = document.getElementById("toastMessage");
 const storageKey = "studentResumeBuilderData";
 const languageStorageKey = "resumeLanguage";
+const cloudSessionStorageKey = "studentResumeBuilderCloudSession";
+const supabaseFunctionsUrl = "https://ybbzgfhponocbjzsmldz.supabase.co/functions/v1";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InliYnpnZmhwb25vY2JqenNtbGR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNjAwMTUsImV4cCI6MjA5NDgzNjAxNX0.Al4EzSa1sUGnYAtuBfQlEDn49sqv7liV-HIbixkgjjM";
+const productionMobileGuideUrl = "https://emilymurong.github.io/resume-building/?mode=mobile";
 const translations = {
   zh: {
     langToggle: "EN",
+    landingSubtitle: "手机访问，电脑编辑，快速生成专业简历",
+    landingDescription: "支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。",
+    startBuilding: "开始创建简历",
+    scanConnectPhone: "扫码连接手机",
+    scanConnectTitle: "扫码连接手机",
+    coreFeaturesTitle: "核心功能",
+    featureImportTitle: "文件导入",
+    featureImportText: "支持 TXT、DOCX、PDF 简历导入",
+    featureSmartFillTitle: "智能填充",
+    featureSmartFillText: "自动识别信息并填充表单",
+    featureLivePreviewTitle: "实时预览",
+    featureLivePreviewText: "右侧 A4 简历实时同步",
+    featureTemplatesTitle: "模板切换",
+    featureTemplatesText: "支持 Classic、Modern、Minimal 模板",
+    featurePdfTitle: "PDF 导出",
+    featurePdfText: "一键导出可投递的 PDF 简历",
+    featureMobileTitle: "手机端引导",
+    featureMobileText: "手机访问时可复制链接到电脑继续编辑",
+    mobileGuideTitle: "手机访问，电脑编辑",
+    mobileGuideDescription: "复制下方链接，在电脑浏览器中打开，继续编辑你的简历",
+    mobileGuideNote: "也可以使用其他设备扫描二维码打开",
+    copyLink: "复制链接",
+    mobileGuideHome: "返回首页",
+    connectionCodeLabel: "输入连接码",
+    connectionCodePlaceholder: "6 位数字",
+    connectCloudDraft: "连接草稿",
+    generateConnectionCode: "生成连接码",
+    generatingConnectionCode: "正在生成连接码...",
+    connectionCodeReady: "连接码已生成，请在电脑首页输入。",
+    connectionCodeFailed: "连接码生成失败，请稍后重试。",
+    connectingCloudDraft: "正在连接云端草稿...",
+    connectedCloudDraft: "已连接云端草稿。",
+    connectCloudDraftFailed: "连接码无效或已过期。",
+    cloudDraftSaved: "云端草稿已保存。",
+    cloudDraftSaveFailed: "云端保存失败，已保留本地草稿。",
+    enterConnectionCode: "请输入 6 位连接码。",
+    backHome: "← 返回首页",
+    linkCopied: "链接已复制。",
     brandDescription: "为学生项目、课程实践和实习投递准备的智能简历生成器。",
     resumeEditor: "填写简历内容",
     editorNote: "信息会实时同步到右侧 A4 预览。",
@@ -220,6 +282,44 @@ const translations = {
   },
   en: {
     langToggle: "中文",
+    landingSubtitle: "Mobile access, desktop editing, and smart resume export",
+    landingDescription: "Import TXT, DOCX, or PDF resumes, auto-fill your form, preview in real time, switch templates, and export as PDF.",
+    startBuilding: "Start Building",
+    scanConnectPhone: "Scan to Connect",
+    scanConnectTitle: "Scan to Connect Phone",
+    coreFeaturesTitle: "Core Features",
+    featureImportTitle: "Resume Import",
+    featureImportText: "Import resumes from TXT, DOCX, and PDF files",
+    featureSmartFillTitle: "Smart Fill",
+    featureSmartFillText: "Recognize resume content and auto-fill the form",
+    featureLivePreviewTitle: "Live Preview",
+    featureLivePreviewText: "Preview your A4 resume in real time",
+    featureTemplatesTitle: "Templates",
+    featureTemplatesText: "Switch between Classic, Modern, and Minimal templates",
+    featurePdfTitle: "PDF Export",
+    featurePdfText: "Export your resume as a PDF file",
+    featureMobileTitle: "Mobile Guide",
+    featureMobileText: "Copy the link on mobile and continue editing on desktop",
+    mobileGuideTitle: "Mobile Access, Desktop Editing",
+    mobileGuideDescription: "Copy the link below and open it in your desktop browser to continue editing your resume",
+    mobileGuideNote: "You can also scan the QR code with another device",
+    copyLink: "Copy Link",
+    mobileGuideHome: "Back Home",
+    connectionCodeLabel: "Connection Code",
+    connectionCodePlaceholder: "6 digits",
+    connectCloudDraft: "Connect Draft",
+    generateConnectionCode: "Generate Code",
+    generatingConnectionCode: "Generating connection code...",
+    connectionCodeReady: "Code generated. Enter it on the desktop home page.",
+    connectionCodeFailed: "Could not generate the code. Please try again.",
+    connectingCloudDraft: "Connecting cloud draft...",
+    connectedCloudDraft: "Cloud draft connected.",
+    connectCloudDraftFailed: "The code is invalid or expired.",
+    cloudDraftSaved: "Cloud draft saved.",
+    cloudDraftSaveFailed: "Cloud save failed. Local draft is kept.",
+    enterConnectionCode: "Please enter the 6-digit code.",
+    backHome: "← Back Home",
+    linkCopied: "Link copied.",
     brandDescription: "Smart resume builder for student projects, coursework, and internship applications.",
     resumeEditor: "Resume Editor",
     editorNote: "Your information syncs live to the A4 preview.",
@@ -506,13 +606,266 @@ let toastTimer;
 let importErrorTimer;
 let importedResumeSource = "";
 let currentLanguage = localStorage.getItem(languageStorageKey) === "en" ? "en" : "zh";
+let currentView = "";
+let cloudSession = loadCloudSession();
+let mobileModeHomeOverride = false;
+const desktopBreakpoint = 1024;
+const isMobileModeFromUrl =
+  new URLSearchParams(window.location.search).get("mode") === "mobile";
+
+function isDesktopViewport() {
+  return !isMobileModeFromUrl && window.innerWidth >= desktopBreakpoint;
+}
 
 function getValue(fieldName) {
   return fields[fieldName].value.trim();
 }
 
+function loadCloudSession() {
+  const savedSession = localStorage.getItem(cloudSessionStorageKey);
+
+  if (!savedSession) {
+    return null;
+  }
+
+  try {
+    const session = JSON.parse(savedSession);
+
+    if (session?.draftId && session?.draftToken) {
+      return session;
+    }
+  } catch (error) {
+    localStorage.removeItem(cloudSessionStorageKey);
+  }
+
+  return null;
+}
+
+function saveCloudSession(session) {
+  cloudSession = session;
+
+  if (!session) {
+    localStorage.removeItem(cloudSessionStorageKey);
+    return;
+  }
+
+  localStorage.setItem(cloudSessionStorageKey, JSON.stringify(session));
+}
+
+function getResumeDataFromForm() {
+  const formData = {};
+
+  Object.keys(fields).forEach((fieldName) => {
+    formData[fieldName] = fields[fieldName].value;
+  });
+
+  formData.avatar = avatarData;
+  formData.template = selectedTemplate;
+  formData.projects = projectsData;
+  formData.internships = internshipsData;
+  formData.work = workData;
+  formData.addedModules = addedModules;
+
+  return formData;
+}
+
+function applyResumeData(formData) {
+  Object.keys(fields).forEach((fieldName) => {
+    fields[fieldName].value = formData?.[fieldName] || "";
+  });
+
+  if (!formData?.programmingLanguages && formData?.skills) {
+    fields.programmingLanguages.value = formData.skills;
+  }
+
+  avatarData = formData?.avatar || "";
+  selectedTemplate = formData?.template || "classic";
+  projectsData = normalizeExperienceList(formData?.projects, formData?.projects);
+  internshipsData = normalizeExperienceList(
+    formData?.internships,
+    formData?.internship,
+  );
+  workData = normalizeExperienceList(formData?.work);
+  addedModules = normalizeAddedModules(formData?.addedModules);
+
+  if (!templateNames.includes(selectedTemplate)) {
+    selectedTemplate = "classic";
+  }
+
+  templateRadios.forEach((radio) => {
+    radio.checked = radio.value === selectedTemplate;
+  });
+}
+
+async function callCloudFunction(functionName, payload) {
+  const response = await fetch(`${supabaseFunctionsUrl}/${functionName}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const body = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(body?.error || body?.message || functionName);
+  }
+
+  return body;
+}
+
+async function createCloudDraft() {
+  const result = await callCloudFunction("create-cloud-draft", {
+    resumeJson: getResumeDataFromForm(),
+    source: isDesktopViewport() ? "desktop" : "mobile"
+  });
+
+  saveCloudSession({
+    draftId: result.draftId,
+    draftToken: result.draftToken
+  });
+
+  return result;
+}
+
+async function connectCloudDraft(code) {
+  const result = await callCloudFunction("connect-cloud-draft", { code });
+
+  saveCloudSession({
+    draftId: result.draftId,
+    draftToken: result.draftToken
+  });
+  applyResumeData(result.resumeJson || {});
+  saveResumeData();
+  refreshResumeState();
+
+  return result;
+}
+
+async function saveCloudDraft() {
+  if (!cloudSession?.draftId || !cloudSession?.draftToken) {
+    return null;
+  }
+
+  return callCloudFunction("save-cloud-draft", {
+    draftId: cloudSession.draftId,
+    draftToken: cloudSession.draftToken,
+    resumeJson: getResumeDataFromForm(),
+    lastSyncSource: isDesktopViewport() ? "desktop" : "mobile"
+  });
+}
+
 function t(key) {
   return translations[currentLanguage][key] || translations.zh[key] || key;
+}
+
+function getShareUrl() {
+  return window.location.href.split("#")[0];
+}
+
+function getMobileModeUrl() {
+  const localHosts = ["127.0.0.1", "localhost"];
+
+  if (localHosts.includes(window.location.hostname)) {
+    return productionMobileGuideUrl;
+  }
+
+  const url = new URL(window.location.href);
+  url.hash = "";
+  url.search = "";
+  url.searchParams.set("mode", "mobile");
+
+  return url.toString();
+}
+
+function renderQrToImage(image, text) {
+  if (window.QRCode?.toDataURL) {
+    window.QRCode.toDataURL(
+      text,
+      {
+        errorCorrectionLevel: "L",
+        margin: 4,
+        width: 320
+      },
+      (error, dataUrl) => {
+        if (!error) {
+          image.src = dataUrl;
+        }
+      },
+    );
+  }
+}
+
+function updateMobileGuideLink() {
+  const shareUrl = getMobileModeUrl();
+
+  if (currentLinkText) {
+    currentLinkText.textContent = shareUrl;
+  }
+
+  if (mobileQrImage) {
+    renderQrToImage(mobileQrImage, shareUrl);
+  }
+}
+
+function renderDesktopQr() {
+  const mobileUrl = getMobileModeUrl();
+
+  desktopQrLink.textContent = mobileUrl;
+
+  if (window.QRCode?.toString) {
+    window.QRCode.toString(
+      mobileUrl,
+      {
+        type: "svg",
+        errorCorrectionLevel: "L",
+        margin: 4
+      },
+      (error, svg) => {
+        desktopQrCode.innerHTML = error ? "" : svg;
+      },
+    );
+  }
+}
+
+function showView(viewName) {
+  currentView = viewName;
+  document.body.classList.remove("view-landing", "view-mobile-guide", "view-editor");
+  document.body.classList.add(`view-${viewName.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`);
+
+  if (landingPage) {
+    landingPage.setAttribute("aria-hidden", String(viewName !== "landing"));
+  }
+
+  if (mobileGuide) {
+    mobileGuide.setAttribute("aria-hidden", String(viewName !== "mobileGuide"));
+  }
+
+  if (editorView) {
+    editorView.setAttribute("aria-hidden", String(viewName !== "editor"));
+  }
+
+  if (viewName === "mobileGuide") {
+    updateMobileGuideLink();
+  }
+
+  window.scrollTo({ top: 0, left: 0 });
+}
+
+function showDefaultEntryView() {
+  if (isMobileModeFromUrl && mobileModeHomeOverride) {
+    showView("landing");
+    return;
+  }
+
+  if (isMobileModeFromUrl && !mobileModeHomeOverride) {
+    showView("mobileGuide");
+    return;
+  }
+
+  showView(isDesktopViewport() ? "landing" : "mobileGuide");
 }
 
 function showToast(message) {
@@ -587,6 +940,19 @@ function closeExportTipModal() {
   downloadBtn.focus();
 }
 
+function openScanConnectModal() {
+  renderDesktopQr();
+  scanConnectModal.classList.add("is-open");
+  scanConnectModal.setAttribute("aria-hidden", "false");
+  closeScanConnectBtn.focus();
+}
+
+function closeScanConnectModal() {
+  scanConnectModal.classList.remove("is-open");
+  scanConnectModal.setAttribute("aria-hidden", "true");
+  openScanConnectBtn.focus();
+}
+
 function openModuleModal() {
   renderModuleOptions();
   moduleModal.classList.add("is-open");
@@ -646,10 +1012,48 @@ function setLegendText(fieldsetIndex, value) {
 function updateStaticLanguage() {
   document.documentElement.lang = currentLanguage === "en" ? "en" : "zh-CN";
   document.title = "Resume-Building";
-  languageZhBtn.classList.toggle("is-active", currentLanguage === "zh");
-  languageEnBtn.classList.toggle("is-active", currentLanguage === "en");
-  languageZhBtn.setAttribute("aria-pressed", String(currentLanguage === "zh"));
-  languageEnBtn.setAttribute("aria-pressed", String(currentLanguage === "en"));
+  document.querySelectorAll("[data-lang]").forEach((button) => {
+    const isActive = button.dataset.lang === currentLanguage;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+  setText(".landing-subtitle", t("landingSubtitle"));
+  setText(".landing-description", t("landingDescription"));
+  setText("#startBuildingBtn", t("startBuilding"));
+  setText("#openScanConnectBtn", t("scanConnectPhone"));
+  setText("#scanConnectTitle", t("scanConnectTitle"));
+  setText("#coreFeaturesTitle", t("coreFeaturesTitle"));
+  setText("#mobileGuideTitle", t("mobileGuideTitle"));
+  setText(".mobile-guide-description", t("mobileGuideDescription"));
+  setText(".mobile-guide-note", t("mobileGuideNote"));
+  setText("#copyLinkBtn", t("copyLink"));
+  setText("#mobileGuideHomeBtn", t("mobileGuideHome"));
+  setText(".connection-panel label", t("connectionCodeLabel"));
+  setText("#connectCloudDraftBtn", t("connectCloudDraft"));
+  setText("#generateConnectionCodeBtn", t("generateConnectionCode"));
+  setPlaceholder("connectionCodeInput", t("connectionCodePlaceholder"));
+  setText("#backHomeBtn", t("backHome"));
+
+  const featureTexts = [
+    ["featureImportTitle", "featureImportText"],
+    ["featureSmartFillTitle", "featureSmartFillText"],
+    ["featureLivePreviewTitle", "featureLivePreviewText"],
+    ["featureTemplatesTitle", "featureTemplatesText"],
+    ["featurePdfTitle", "featurePdfText"],
+    ["featureMobileTitle", "featureMobileText"]
+  ];
+
+  document.querySelectorAll(".feature-card").forEach((card, index) => {
+    const textKeys = featureTexts[index];
+
+    if (!textKeys) {
+      return;
+    }
+
+    card.querySelector("strong").textContent = t(textKeys[0]);
+    card.querySelector("p").textContent = t(textKeys[1]);
+  });
+
   setText(".brand-copy p", t("brandDescription"));
   setText(".panel-title h1", t("resumeEditor"));
   setText(".panel-title p", t("editorNote"));
@@ -818,43 +1222,43 @@ function updateInlinePreviewLines() {
 }
 
 function updateDelimitedLine(line, placeholderText) {
-    const children = Array.from(line.children);
-    let placeholder = line.querySelector(".line-placeholder");
+  const children = Array.from(line.children);
+  let placeholder = line.querySelector(".line-placeholder");
 
-    if (!placeholder) {
-      placeholder = document.createElement("span");
-      placeholder.className = "line-placeholder preview-placeholder";
-      line.appendChild(placeholder);
+  if (!placeholder) {
+    placeholder = document.createElement("span");
+    placeholder.className = "line-placeholder preview-placeholder";
+    line.appendChild(placeholder);
+  }
+
+  children.forEach((child) => {
+    if (child.classList.contains("divider") || child.classList.contains("line-placeholder")) {
+      return;
     }
 
-    children.forEach((child) => {
-      if (child.classList.contains("divider") || child.classList.contains("line-placeholder")) {
-        return;
-      }
+    child.hidden = child.textContent.trim() === "";
+  });
 
-      child.hidden = child.textContent.trim() === "";
-    });
-
-    children.forEach((child, index) => {
-      if (!child.classList.contains("divider")) {
-        return;
-      }
-
-      const hasVisibleBefore = children.slice(0, index).some((item) => !item.classList.contains("divider") && !item.hidden);
-      const hasVisibleAfter = children.slice(index + 1).some((item) => !item.classList.contains("divider") && !item.hidden);
-      child.hidden = !hasVisibleBefore || !hasVisibleAfter;
-    });
-
-    const hasRealContent = children.some((child) => !child.classList.contains("divider") && !child.classList.contains("line-placeholder") && !child.hidden);
-    placeholder.textContent = placeholderText;
-    placeholder.hidden = hasRealContent;
-    line.hidden = false;
-
-    if (hasRealContent) {
-      line.classList.remove("is-placeholder-only");
-    } else {
-      line.classList.add("is-placeholder-only");
+  children.forEach((child, index) => {
+    if (!child.classList.contains("divider")) {
+      return;
     }
+
+    const hasVisibleBefore = children.slice(0, index).some((item) => !item.classList.contains("divider") && !item.hidden);
+    const hasVisibleAfter = children.slice(index + 1).some((item) => !item.classList.contains("divider") && !item.hidden);
+    child.hidden = !hasVisibleBefore || !hasVisibleAfter;
+  });
+
+  const hasRealContent = children.some((child) => !child.classList.contains("divider") && !child.classList.contains("line-placeholder") && !child.hidden);
+  placeholder.textContent = placeholderText;
+  placeholder.hidden = hasRealContent;
+  line.hidden = false;
+
+  if (hasRealContent) {
+    line.classList.remove("is-placeholder-only");
+  } else {
+    line.classList.add("is-placeholder-only");
+  }
 }
 
 function updateAvatarPreview() {
@@ -2447,19 +2851,7 @@ function updateExperienceField(target) {
 }
 
 function saveResumeData() {
-  const formData = {};
-
-  Object.keys(fields).forEach((fieldName) => {
-    formData[fieldName] = fields[fieldName].value;
-  });
-
-  formData.avatar = avatarData;
-  formData.template = selectedTemplate;
-  formData.projects = projectsData;
-  formData.internships = internshipsData;
-  formData.work = workData;
-  formData.addedModules = addedModules;
-  localStorage.setItem(storageKey, JSON.stringify(formData));
+  localStorage.setItem(storageKey, JSON.stringify(getResumeDataFromForm()));
 }
 
 function loadResumeData() {
@@ -2471,32 +2863,10 @@ function loadResumeData() {
 
   try {
     const formData = JSON.parse(savedData);
-
-    Object.keys(fields).forEach((fieldName) => {
-      fields[fieldName].value = formData[fieldName] || "";
-    });
-
-    if (!formData.programmingLanguages && formData.skills) {
-      fields.programmingLanguages.value = formData.skills;
-    }
-
-    avatarData = formData.avatar || "";
-    selectedTemplate = formData.template || "classic";
-    projectsData = normalizeExperienceList(formData.projects, formData.projects);
-    internshipsData = normalizeExperienceList(formData.internships, formData.internship);
-    workData = normalizeExperienceList(formData.work);
-    addedModules = normalizeAddedModules(formData.addedModules);
-
-    if (!templateNames.includes(selectedTemplate)) {
-      selectedTemplate = "classic";
-    }
-
-    templateRadios.forEach((radio) => {
-      radio.checked = radio.value === selectedTemplate;
-    });
+    applyResumeData(formData);
 
     window.setTimeout(() => {
-    showToast(t("draftRestored"));
+      showToast(t("draftRestored"));
     }, 200);
   } catch (error) {
     localStorage.removeItem(storageKey);
@@ -2515,9 +2885,21 @@ function showDraftStatus(message) {
   showToast(message);
 }
 
-function saveDraft() {
+async function saveDraft() {
   saveResumeData();
-  showDraftStatus(t("draftSaved"));
+
+  if (!cloudSession?.draftId || !cloudSession?.draftToken) {
+    showDraftStatus(t("draftSaved"));
+    return;
+  }
+
+  try {
+    await saveCloudDraft();
+    showDraftStatus(t("cloudDraftSaved"));
+  } catch (error) {
+    console.error("save cloud draft failed", error);
+    showErrorToast(t("cloudDraftSaveFailed"));
+  }
 }
 
 function hasEnoughResumeContent() {
@@ -2544,6 +2926,7 @@ function clearResumeForm() {
   resumeFileName.textContent = "";
   importedResumeSource = "";
   localStorage.removeItem(storageKey);
+  saveCloudSession(null);
 
   templateRadios.forEach((radio) => {
     radio.checked = radio.value === selectedTemplate;
@@ -2730,8 +3113,19 @@ exportTipModal.addEventListener("click", (event) => {
   }
 });
 
+scanConnectModal.addEventListener("click", (event) => {
+  if (event.target.matches("[data-close-scan-connect-modal]")) {
+    closeScanConnectModal();
+  }
+});
+
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") {
+    return;
+  }
+
+  if (scanConnectModal.classList.contains("is-open")) {
+    closeScanConnectModal();
     return;
   }
 
@@ -2796,6 +3190,63 @@ saveDraftBtn.addEventListener("click", () => {
   saveDraft();
 });
 
+generateConnectionCodeBtn.addEventListener("click", async () => {
+  mobileCloudStatus.textContent = t("generatingConnectionCode");
+  connectionCodeText.textContent = "";
+  generateConnectionCodeBtn.disabled = true;
+
+  try {
+    const result = await createCloudDraft();
+    connectionCodeText.textContent = result.connectionCode || "";
+    mobileCloudStatus.textContent = t("connectionCodeReady");
+    saveResumeData();
+  } catch (error) {
+    console.error("create cloud draft failed", error);
+    mobileCloudStatus.textContent = t("connectionCodeFailed");
+    showErrorToast(t("connectionCodeFailed"));
+  } finally {
+    generateConnectionCodeBtn.disabled = false;
+  }
+});
+
+connectCloudDraftBtn.addEventListener("click", async () => {
+  const code = connectionCodeInput.value.replace(/\D/g, "").slice(0, 6);
+  connectionCodeInput.value = code;
+
+  if (!/^\d{6}$/.test(code)) {
+    connectionStatus.textContent = t("enterConnectionCode");
+    showToast(t("enterConnectionCode"));
+    return;
+  }
+
+  connectionStatus.textContent = t("connectingCloudDraft");
+  connectCloudDraftBtn.disabled = true;
+
+  try {
+    await connectCloudDraft(code);
+    connectionStatus.textContent = t("connectedCloudDraft");
+    showToast(t("connectedCloudDraft"));
+    showView("editor");
+  } catch (error) {
+    console.error("connect cloud draft failed", error);
+    connectionStatus.textContent = t("connectCloudDraftFailed");
+    showErrorToast(t("connectCloudDraftFailed"));
+  } finally {
+    connectCloudDraftBtn.disabled = false;
+  }
+});
+
+connectionCodeInput.addEventListener("input", () => {
+  connectionCodeInput.value = connectionCodeInput.value.replace(/\D/g, "").slice(0, 6);
+});
+
+connectionCodeInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    connectCloudDraftBtn.click();
+  }
+});
+
 fillExampleBtn.addEventListener("click", () => {
   fillExampleData();
 });
@@ -2838,16 +3289,59 @@ templateRadios.forEach((radio) => {
   });
 });
 
-document.querySelector(".language-switch").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-lang]");
+document.querySelectorAll(".language-switch").forEach((switchElement) => {
+  switchElement.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-lang]");
 
-  if (!button || button.dataset.lang === currentLanguage) {
+    if (!button || button.dataset.lang === currentLanguage) {
+      return;
+    }
+
+    currentLanguage = button.dataset.lang;
+    localStorage.setItem(languageStorageKey, currentLanguage);
+    updateLanguage();
+  });
+});
+
+startBuildingBtn.addEventListener("click", () => {
+  showView("editor");
+});
+
+openScanConnectBtn.addEventListener("click", () => {
+  openScanConnectModal();
+});
+
+closeScanConnectBtn.addEventListener("click", () => {
+  closeScanConnectModal();
+});
+
+mobileGuideHomeBtn.addEventListener("click", () => {
+  mobileModeHomeOverride = true;
+  showView("landing");
+});
+
+backHomeBtn.addEventListener("click", () => {
+  showDefaultEntryView();
+});
+
+copyLinkBtn.addEventListener("click", async () => {
+  const shareUrl = getMobileModeUrl();
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    showToast(t("linkCopied"));
+  } catch (error) {
+    currentLinkText.focus();
+    showToast(shareUrl);
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (currentView === "editor") {
     return;
   }
 
-  currentLanguage = button.dataset.lang;
-  localStorage.setItem(languageStorageKey, currentLanguage);
-  updateLanguage();
+  showDefaultEntryView();
 });
 
 downloadBtn.addEventListener("click", () => {
@@ -2870,3 +3364,4 @@ updatePreview();
 updateAvatarPreview();
 updateTemplateSelection();
 updateLanguage();
+showDefaultEntryView();

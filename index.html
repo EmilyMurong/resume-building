@@ -10,368 +10,473 @@
 </head>
 
 <body>
-  <header class="app-header">
-    <div class="brand-block">
-      <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
-      <div class="brand-copy">
-        <strong class="product-name">Resume Building</strong>
-        <p>为学生项目、课程实践和实习投递准备的智能简历生成器。</p>
-      </div>
-    </div>
-    <div class="header-actions">
-      <div class="language-switch" role="group" aria-label="Language switch">
-        <button id="languageZhBtn" class="language-switch-btn" type="button" data-lang="zh">中文</button>
-        <button id="languageEnBtn" class="language-switch-btn" type="button" data-lang="en">EN</button>
-      </div>
-      <button id="downloadBtn" class="download-btn" type="button">下载 PDF</button>
-    </div>
-  </header>
-
-  <main class="app-layout">
-    <section class="form-panel" aria-label="简历表单">
-      <div class="panel-title">
-        <div>
-          <span class="eyebrow">Resume Editor</span>
-          <h1>填写简历内容</h1>
+  <section id="landingPage" class="landing-page page-view" aria-labelledby="landingTitle">
+    <div class="landing-shell">
+      <nav class="landing-nav" aria-label="Landing navigation">
+        <div class="brand-block">
+          <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+          <strong class="product-name">Resume-Building</strong>
         </div>
-        <p>信息会实时同步到右侧 A4 预览。</p>
-      </div>
-
-      <section class="import-panel" aria-label="导入简历文本">
-        <div class="step-heading">
-          <span>Import</span>
-          <h2>导入简历文本</h2>
+        <div class="language-switch" role="group" aria-label="Language switch">
+          <button class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button class="language-switch-btn" type="button" data-lang="en">EN</button>
         </div>
-        <div class="import-input-grid">
-          <label>
-            粘贴简历内容
-            <textarea id="resumeImportText" rows="6" placeholder="粘贴一整段简历内容，例如姓名、联系方式、教育背景、技能、项目经历等"></textarea>
-          </label>
-          <div class="file-import-box">
-            <div>
-              <span>上传简历文件</span>
-              <small>支持 TXT、DOCX、PDF 文件导入，暂不支持图片格式</small>
+      </nav>
+
+      <div class="landing-hero">
+        <div class="landing-hero-copy">
+          <h1 id="landingTitle">Resume-Building</h1>
+          <p class="landing-subtitle">手机访问，电脑编辑，快速生成专业简历</p>
+          <p class="landing-description">支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。</p>
+          <div class="landing-action-row">
+            <button id="startBuildingBtn" class="landing-primary-btn" type="button">开始创建简历</button>
+            <button id="openScanConnectBtn" class="guide-secondary-btn" type="button">扫码连接手机</button>
+          </div>
+          <div class="connection-panel" aria-label="输入连接码">
+            <label for="connectionCodeInput">输入连接码</label>
+            <div class="connection-input-row">
+              <input id="connectionCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+              <button id="connectCloudDraftBtn" class="guide-secondary-btn" type="button">连接草稿</button>
             </div>
-            <button id="openImportModalBtn" class="file-import-button" type="button">导入简历</button>
-            <small id="resumeFileName" class="file-import-name"></small>
+            <p id="connectionStatus" class="connection-status" aria-live="polite"></p>
           </div>
         </div>
-        <div class="import-actions">
-          <p id="importStatus" aria-live="polite"></p>
-          <button id="smartFillBtn" class="import-fill-btn" type="button">智能填充</button>
+      </div>
+
+      <section class="core-features" aria-labelledby="coreFeaturesTitle">
+        <div class="core-features-head">
+          <h2 id="coreFeaturesTitle">核心功能</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <strong>文件导入</strong>
+            <p>支持 TXT、DOCX、PDF 简历导入</p>
+          </article>
+          <article class="feature-card">
+            <strong>智能填充</strong>
+            <p>自动识别信息并填充表单</p>
+          </article>
+          <article class="feature-card">
+            <strong>实时预览</strong>
+            <p>右侧 A4 简历实时同步</p>
+          </article>
+          <article class="feature-card">
+            <strong>模板切换</strong>
+            <p>支持 Classic、Modern、Minimal 模板</p>
+          </article>
+          <article class="feature-card">
+            <strong>PDF 导出</strong>
+            <p>一键导出可投递的 PDF 简历</p>
+          </article>
+          <article class="feature-card">
+            <strong>手机端引导</strong>
+            <p>手机访问时可复制链接到电脑继续编辑</p>
+          </article>
         </div>
       </section>
+    </div>
+  </section>
 
-      <section class="draft-toolbar" aria-label="草稿工具">
-        <button id="saveDraftBtn" class="draft-action-btn draft-action-primary" type="button">保存草稿</button>
-        <button id="fillExampleBtn" class="draft-action-btn" type="button">填充示例</button>
-        <button id="clearFormBtn" class="draft-action-btn draft-action-danger" type="button">清空表单</button>
-      </section>
-
-      <section class="template-picker" aria-label="模板选择">
-        <div class="step-heading">
-          <span>Template</span>
-          <h2>选择模板</h2>
+  <section id="mobileGuide" class="mobile-guide page-view" aria-labelledby="mobileGuideTitle">
+    <div class="mobile-guide-shell">
+      <div class="mobile-guide-top">
+        <div class="brand-block">
+          <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+          <strong class="product-name">Resume-Building</strong>
         </div>
-        <div class="template-options" role="radiogroup" aria-label="简历模板">
-          <label class="template-card is-selected">
-            <input type="radio" name="template" value="classic" checked>
-            <span>Classic</span>
-            <small>ATS 标准</small>
-          </label>
-          <label class="template-card">
-            <input type="radio" name="template" value="modern">
-            <span>Modern</span>
-            <small>互联网分栏</small>
-          </label>
-          <label class="template-card">
-            <input type="radio" name="template" value="minimal">
-            <span>Minimal</span>
-            <small>极简留白</small>
-          </label>
+        <div class="language-switch" role="group" aria-label="Language switch">
+          <button class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button class="language-switch-btn" type="button" data-lang="en">EN</button>
         </div>
-      </section>
+      </div>
 
-      <form id="resumeForm">
-        <fieldset class="form-step">
-          <legend>
-            <span>01</span>
-            <strong>基本信息</strong>
-          </legend>
+      <div class="mobile-guide-card">
+        <h1 id="mobileGuideTitle">手机访问，电脑编辑</h1>
+        <p class="mobile-guide-description">复制下方链接，在电脑浏览器中打开，继续编辑你的简历</p>
+        <p class="mobile-guide-note">也可以使用其他设备扫描二维码打开</p>
+        <div class="qr-frame">
+          <img id="mobileQrImage" alt="Resume-Building QR code">
+        </div>
+        <p id="currentLinkText" class="current-link"></p>
+        <div class="cloud-code-panel" aria-label="云端连接码">
+          <button id="generateConnectionCodeBtn" class="landing-primary-btn" type="button">生成连接码</button>
+          <p id="connectionCodeText" class="connection-code-text" aria-live="polite"></p>
+          <p id="mobileCloudStatus" class="connection-status" aria-live="polite"></p>
+        </div>
+        <div class="mobile-guide-actions">
+          <button id="copyLinkBtn" class="guide-secondary-btn" type="button">复制链接</button>
+          <button id="mobileGuideHomeBtn" class="landing-primary-btn" type="button">返回首页</button>
+        </div>
+      </div>
+    </div>
+  </section>
 
-          <div class="avatar-upload">
-            <div class="avatar-upload-copy">
-              <span>头像</span>
-              <small>上传一张清晰正面照</small>
+  <div id="editorView" class="editor-view page-view">
+    <header class="app-header">
+      <div class="brand-block">
+        <img class="brand-logo" src="assets/logo.png" alt="Resume-Building logo">
+        <div class="brand-copy">
+          <strong class="product-name">Resume Building</strong>
+          <p>为学生项目、课程实践和实习投递准备的智能简历生成器。</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="backHomeBtn" class="back-home-btn" type="button">← 返回首页</button>
+        <div class="language-switch" role="group" aria-label="Language switch">
+          <button id="languageZhBtn" class="language-switch-btn" type="button" data-lang="zh">中文</button>
+          <button id="languageEnBtn" class="language-switch-btn" type="button" data-lang="en">EN</button>
+        </div>
+        <button id="downloadBtn" class="download-btn" type="button">下载 PDF</button>
+      </div>
+    </header>
+
+    <main class="app-layout">
+      <section class="form-panel" aria-label="简历表单">
+        <div class="panel-title">
+          <div>
+            <span class="eyebrow">Resume Editor</span>
+            <h1>填写简历内容</h1>
+          </div>
+          <p>信息会实时同步到右侧 A4 预览。</p>
+        </div>
+
+        <section class="import-panel" aria-label="导入简历文本">
+          <div class="step-heading">
+            <span>Import</span>
+            <h2>导入简历文本</h2>
+          </div>
+          <div class="import-input-grid">
+            <label>
+              粘贴简历内容
+              <textarea id="resumeImportText" rows="6" placeholder="粘贴一整段简历内容，例如姓名、联系方式、教育背景、技能、项目经历等"></textarea>
+            </label>
+            <div class="file-import-box">
+              <div>
+                <span>上传简历文件</span>
+                <small>支持 TXT、DOCX、PDF 文件导入，暂不支持图片格式</small>
+              </div>
+              <button id="openImportModalBtn" class="file-import-button" type="button">导入简历</button>
+              <small id="resumeFileName" class="file-import-name"></small>
             </div>
-            <label class="avatar-upload-button" for="avatarInput">
-              选择头像
-              <input id="avatarInput" type="file" accept="image/*">
+          </div>
+          <div class="import-actions">
+            <p id="importStatus" aria-live="polite"></p>
+            <button id="smartFillBtn" class="import-fill-btn" type="button">智能填充</button>
+          </div>
+        </section>
+
+        <section class="draft-toolbar" aria-label="草稿工具">
+          <button id="saveDraftBtn" class="draft-action-btn draft-action-primary" type="button">保存草稿</button>
+          <button id="fillExampleBtn" class="draft-action-btn" type="button">填充示例</button>
+          <button id="clearFormBtn" class="draft-action-btn draft-action-danger" type="button">清空表单</button>
+        </section>
+
+        <section class="template-picker" aria-label="模板选择">
+          <div class="step-heading">
+            <span>Template</span>
+            <h2>选择模板</h2>
+          </div>
+          <div class="template-options" role="radiogroup" aria-label="简历模板">
+            <label class="template-card is-selected">
+              <input type="radio" name="template" value="classic" checked>
+              <span>Classic</span>
+              <small>ATS 标准</small>
+            </label>
+            <label class="template-card">
+              <input type="radio" name="template" value="modern">
+              <span>Modern</span>
+              <small>互联网分栏</small>
+            </label>
+            <label class="template-card">
+              <input type="radio" name="template" value="minimal">
+              <span>Minimal</span>
+              <small>极简留白</small>
             </label>
           </div>
+        </section>
 
-          <label>
-            姓名
-            <input id="name" type="text" placeholder="例如：张小明">
-          </label>
+        <form id="resumeForm">
+          <fieldset class="form-step">
+            <legend>
+              <span>01</span>
+              <strong>基本信息</strong>
+            </legend>
 
-          <label>
-            邮箱
-            <input id="email" type="email" placeholder="name@example.com">
-          </label>
-
-          <label>
-            电话
-            <input id="phone" type="tel" placeholder="138 0000 0000">
-          </label>
-
-          <label>
-            性别
-            <input id="gender" type="text" placeholder="例如：男 / 女">
-          </label>
-
-          <label>
-            年龄
-            <input id="age" type="text" placeholder="例如：21岁">
-          </label>
-
-          <label>
-            城市
-            <input id="city" type="text" placeholder="例如：上海">
-          </label>
-
-          <label>
-            Github / 个人网站
-            <input id="website" type="text" placeholder="github.com/yourname">
-          </label>
-
-          <label class="field-full">
-            个人简介
-            <textarea id="summary" rows="3" placeholder="用 2-3 句话介绍你的优势、兴趣方向和求职目标"></textarea>
-          </label>
-
-          <label class="field-full">
-            个人优势
-            <textarea id="advantages" rows="3" placeholder="例如：学习能力强、工程实践扎实、关注产品体验、能快速适应团队协作"></textarea>
-          </label>
-        </fieldset>
-
-        <fieldset class="form-step">
-          <legend>
-            <span>02</span>
-            <strong>教育背景</strong>
-          </legend>
-
-          <label>
-            学校
-            <input id="school" type="text" placeholder="例如：某某大学">
-          </label>
-
-          <label>
-            专业
-            <input id="major" type="text" placeholder="例如：计算机科学与技术">
-          </label>
-
-          <label>
-            毕业时间
-            <input id="graduation" type="text" placeholder="例如：2027年6月">
-          </label>
-        </fieldset>
-
-        <fieldset class="form-step">
-          <legend>
-            <span>03</span>
-            <strong>求职意向</strong>
-          </legend>
-
-          <label>
-            求职方向
-            <input id="jobTarget" type="text" placeholder="例如：前端开发实习生">
-          </label>
-
-          <label>
-            期望薪资
-            <input id="expectedSalary" type="text" placeholder="例如：8K-12K">
-          </label>
-
-          <label>
-            技术标签
-            <input id="techTags" type="text" placeholder="例如：Vue、React、Node.js、Python">
-          </label>
-        </fieldset>
-
-        <fieldset class="form-step">
-          <legend>
-            <span>04</span>
-            <strong>技能分类</strong>
-          </legend>
-
-          <label>
-            编程语言
-            <textarea id="programmingLanguages" rows="3" placeholder="例如：JavaScript、TypeScript、Python、Java"></textarea>
-          </label>
-
-          <label>
-            Web开发
-            <textarea id="webDevelopment" rows="3" placeholder="例如：HTML、CSS、Vue、React、Node.js"></textarea>
-          </label>
-
-          <label>
-            数据库
-            <textarea id="databases" rows="3" placeholder="例如：MySQL、MongoDB、Redis"></textarea>
-          </label>
-
-          <label>
-            开发工具
-            <textarea id="devTools" rows="3" placeholder="例如：Git、VS Code、Figma、Postman"></textarea>
-          </label>
-
-          <label>
-            AI应用
-            <textarea id="aiApplications" rows="3"
-              placeholder="例如：Prompt Engineering、Cursor、ChatGPT、AI 辅助开发"></textarea>
-          </label>
-        </fieldset>
-
-        <fieldset class="form-step">
-          <legend>
-            <span>05</span>
-            <strong>项目经历</strong>
-          </legend>
-
-          <div class="field-full repeatable-block">
-            <div class="repeatable-heading">
-              <span>项目经历</span>
-              <button id="addProjectBtn" class="add-item-btn" type="button">+ 添加项目</button>
+            <div class="avatar-upload">
+              <div class="avatar-upload-copy">
+                <span>头像</span>
+                <small>上传一张清晰正面照</small>
+              </div>
+              <label class="avatar-upload-button" for="avatarInput">
+                选择头像
+                <input id="avatarInput" type="file" accept="image/*">
+              </label>
             </div>
-            <div id="projectItems" class="repeatable-list" aria-label="项目经历列表"></div>
-          </div>
-        </fieldset>
 
-        <fieldset class="form-step">
-          <legend>
-            <span>06</span>
-            <strong>实习经历</strong>
-          </legend>
+            <label>
+              姓名
+              <input id="name" type="text" placeholder="例如：张小明">
+            </label>
 
-          <div class="field-full repeatable-block">
-            <div class="repeatable-heading">
-              <span>实习经历</span>
-              <button id="addInternshipBtn" class="add-item-btn" type="button">+ 添加实习</button>
+            <label>
+              邮箱
+              <input id="email" type="email" placeholder="name@example.com">
+            </label>
+
+            <label>
+              电话
+              <input id="phone" type="tel" placeholder="138 0000 0000">
+            </label>
+
+            <label>
+              性别
+              <input id="gender" type="text" placeholder="例如：男 / 女">
+            </label>
+
+            <label>
+              年龄
+              <input id="age" type="text" placeholder="例如：21岁">
+            </label>
+
+            <label>
+              城市
+              <input id="city" type="text" placeholder="例如：上海">
+            </label>
+
+            <label>
+              Github / 个人网站
+              <input id="website" type="text" placeholder="github.com/yourname">
+            </label>
+
+            <label class="field-full">
+              个人简介
+              <textarea id="summary" rows="3" placeholder="用 2-3 句话介绍你的优势、兴趣方向和求职目标"></textarea>
+            </label>
+
+            <label class="field-full">
+              个人优势
+              <textarea id="advantages" rows="3" placeholder="例如：学习能力强、工程实践扎实、关注产品体验、能快速适应团队协作"></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-step">
+            <legend>
+              <span>02</span>
+              <strong>教育背景</strong>
+            </legend>
+
+            <label>
+              学校
+              <input id="school" type="text" placeholder="例如：某某大学">
+            </label>
+
+            <label>
+              专业
+              <input id="major" type="text" placeholder="例如：计算机科学与技术">
+            </label>
+
+            <label>
+              毕业时间
+              <input id="graduation" type="text" placeholder="例如：2027年6月">
+            </label>
+          </fieldset>
+
+          <fieldset class="form-step">
+            <legend>
+              <span>03</span>
+              <strong>求职意向</strong>
+            </legend>
+
+            <label>
+              求职方向
+              <input id="jobTarget" type="text" placeholder="例如：前端开发实习生">
+            </label>
+
+            <label>
+              期望薪资
+              <input id="expectedSalary" type="text" placeholder="例如：8K-12K">
+            </label>
+
+            <label>
+              技术标签
+              <input id="techTags" type="text" placeholder="例如：Vue、React、Node.js、Python">
+            </label>
+          </fieldset>
+
+          <fieldset class="form-step">
+            <legend>
+              <span>04</span>
+              <strong>技能分类</strong>
+            </legend>
+
+            <label>
+              编程语言
+              <textarea id="programmingLanguages" rows="3"
+                placeholder="例如：JavaScript、TypeScript、Python、Java"></textarea>
+            </label>
+
+            <label>
+              Web开发
+              <textarea id="webDevelopment" rows="3" placeholder="例如：HTML、CSS、Vue、React、Node.js"></textarea>
+            </label>
+
+            <label>
+              数据库
+              <textarea id="databases" rows="3" placeholder="例如：MySQL、MongoDB、Redis"></textarea>
+            </label>
+
+            <label>
+              开发工具
+              <textarea id="devTools" rows="3" placeholder="例如：Git、VS Code、Figma、Postman"></textarea>
+            </label>
+
+            <label>
+              AI应用
+              <textarea id="aiApplications" rows="3"
+                placeholder="例如：Prompt Engineering、Cursor、ChatGPT、AI 辅助开发"></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-step">
+            <legend>
+              <span>05</span>
+              <strong>项目经历</strong>
+            </legend>
+
+            <div class="field-full repeatable-block">
+              <div class="repeatable-heading">
+                <span>项目经历</span>
+                <button id="addProjectBtn" class="add-item-btn" type="button">+ 添加项目</button>
+              </div>
+              <div id="projectItems" class="repeatable-list" aria-label="项目经历列表"></div>
             </div>
-            <div id="internshipItems" class="repeatable-list" aria-label="实习经历列表"></div>
+          </fieldset>
+
+          <fieldset class="form-step">
+            <legend>
+              <span>06</span>
+              <strong>实习经历</strong>
+            </legend>
+
+            <div class="field-full repeatable-block">
+              <div class="repeatable-heading">
+                <span>实习经历</span>
+                <button id="addInternshipBtn" class="add-item-btn" type="button">+ 添加实习</button>
+              </div>
+              <div id="internshipItems" class="repeatable-list" aria-label="实习经历列表"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-step">
+            <legend>
+              <span>07</span>
+              <strong>自我评价</strong>
+            </legend>
+
+            <label class="field-full">
+              自我评价
+              <textarea id="selfEvaluation" rows="4" placeholder="总结你的职业态度、协作方式、学习能力和未来发展方向"></textarea>
+            </label>
+          </fieldset>
+        </form>
+
+        <div id="additionalModulesContainer" class="additional-modules-container" aria-label="已添加模块"></div>
+        <button id="openModuleModalBtn" class="add-module-btn" type="button">+ 添加模块</button>
+      </section>
+
+      <section class="preview-panel" aria-label="简历预览">
+        <div class="preview-toolbar">
+          <div>
+            <span class="eyebrow">Live Preview</span>
+            <strong>实时预览</strong>
           </div>
-        </fieldset>
-
-        <fieldset class="form-step">
-          <legend>
-            <span>07</span>
-            <strong>自我评价</strong>
-          </legend>
-
-          <label class="field-full">
-            自我评价
-            <textarea id="selfEvaluation" rows="4" placeholder="总结你的职业态度、协作方式、学习能力和未来发展方向"></textarea>
-          </label>
-        </fieldset>
-      </form>
-
-      <div id="additionalModulesContainer" class="additional-modules-container" aria-label="已添加模块"></div>
-      <button id="openModuleModalBtn" class="add-module-btn" type="button">+ 添加模块</button>
-    </section>
-
-    <section class="preview-panel" aria-label="简历预览">
-      <div class="preview-toolbar">
-        <div>
-          <span class="eyebrow">Live Preview</span>
-          <strong>实时预览</strong>
+          <small>适合 A4 打印</small>
         </div>
-        <small>适合 A4 打印</small>
-      </div>
-      <article id="resumePreview" class="resume-paper template-classic">
-        <div class="resume-head">
-          <div class="resume-profile">
-            <h2 id="previewName">你的姓名</h2>
-            <p class="resume-target" id="previewJobTarget">求职方向</p>
-            <p class="resume-meta-line">
-              <span id="previewGender">性别</span>
-              <span class="divider">|</span>
-              <span id="previewAge">年龄</span>
-              <span class="divider">|</span>
-              <span id="previewCity">城市</span>
-              <span class="divider">|</span>
-              <span id="previewSchoolInline">学校</span>
-              <span class="divider">|</span>
-              <span id="previewMajorInline">专业</span>
+        <article id="resumePreview" class="resume-paper template-classic">
+          <div class="resume-head">
+            <div class="resume-profile">
+              <h2 id="previewName">你的姓名</h2>
+              <p class="resume-target" id="previewJobTarget">求职方向</p>
+              <p class="resume-meta-line">
+                <span id="previewGender">性别</span>
+                <span class="divider">|</span>
+                <span id="previewAge">年龄</span>
+                <span class="divider">|</span>
+                <span id="previewCity">城市</span>
+                <span class="divider">|</span>
+                <span id="previewSchoolInline">学校</span>
+                <span class="divider">|</span>
+                <span id="previewMajorInline">专业</span>
+              </p>
+              <p class="resume-contact-line">
+                <span id="previewPhone">电话</span>
+                <span class="divider">|</span>
+                <span id="previewEmail">邮箱</span>
+                <span class="divider">|</span>
+                <span id="previewWebsite">Github / 个人网站</span>
+              </p>
+              <div id="previewTechTags" class="resume-tags" aria-label="技术标签"></div>
+            </div>
+            <img id="previewAvatar" class="resume-avatar" alt="简历头像">
+          </div>
+
+          <section>
+            <h3>求职意向</h3>
+            <div class="resume-intent-list">
+              <p><strong>求职方向：</strong><span id="previewJobTargetSection">求职方向</span></p>
+              <p><strong>目标城市：</strong><span id="previewCitySection">城市</span></p>
+              <p><strong>期望薪资：</strong><span id="previewExpectedSalary">期望薪资</span></p>
+            </div>
+          </section>
+
+          <section>
+            <h3>教育背景</h3>
+            <p>
+              <strong id="previewSchool">学校</strong>
+              <span id="previewMajor">专业</span>
+              <span id="previewGraduation">毕业时间</span>
             </p>
-            <p class="resume-contact-line">
-              <span id="previewPhone">电话</span>
-              <span class="divider">|</span>
-              <span id="previewEmail">邮箱</span>
-              <span class="divider">|</span>
-              <span id="previewWebsite">Github / 个人网站</span>
-            </p>
-            <div id="previewTechTags" class="resume-tags" aria-label="技术标签"></div>
-          </div>
-          <img id="previewAvatar" class="resume-avatar" alt="简历头像">
-        </div>
+          </section>
 
-        <section>
-          <h3>求职意向</h3>
-          <div class="resume-intent-list">
-            <p><strong>求职方向：</strong><span id="previewJobTargetSection">求职方向</span></p>
-            <p><strong>目标城市：</strong><span id="previewCitySection">城市</span></p>
-            <p><strong>期望薪资：</strong><span id="previewExpectedSalary">期望薪资</span></p>
-          </div>
-        </section>
+          <section>
+            <h3>个人优势</h3>
+            <p id="previewAdvantages"></p>
+          </section>
 
-        <section>
-          <h3>教育背景</h3>
-          <p>
-            <strong id="previewSchool">学校</strong>
-            <span id="previewMajor">专业</span>
-            <span id="previewGraduation">毕业时间</span>
-          </p>
-        </section>
+          <section>
+            <h3>个人简介</h3>
+            <p id="previewSummary"></p>
+          </section>
 
-        <section>
-          <h3>个人优势</h3>
-          <p id="previewAdvantages"></p>
-        </section>
+          <section>
+            <h3>专业技能</h3>
+            <div class="resume-skill-groups">
+              <p><strong>编程语言：</strong><span id="previewProgrammingLanguages"></span></p>
+              <p><strong>Web开发：</strong><span id="previewWebDevelopment"></span></p>
+              <p><strong>数据库：</strong><span id="previewDatabases"></span></p>
+              <p><strong>开发工具：</strong><span id="previewDevTools"></span></p>
+              <p><strong>AI应用：</strong><span id="previewAiApplications"></span></p>
+            </div>
+          </section>
 
-        <section>
-          <h3>个人简介</h3>
-          <p id="previewSummary"></p>
-        </section>
+          <section>
+            <h3>项目经历</h3>
+            <div id="previewProjects" class="resume-experience-list"></div>
+          </section>
 
-        <section>
-          <h3>专业技能</h3>
-          <div class="resume-skill-groups">
-            <p><strong>编程语言：</strong><span id="previewProgrammingLanguages"></span></p>
-            <p><strong>Web开发：</strong><span id="previewWebDevelopment"></span></p>
-            <p><strong>数据库：</strong><span id="previewDatabases"></span></p>
-            <p><strong>开发工具：</strong><span id="previewDevTools"></span></p>
-            <p><strong>AI应用：</strong><span id="previewAiApplications"></span></p>
-          </div>
-        </section>
+          <section>
+            <h3>实习经历</h3>
+            <div id="previewInternship" class="resume-experience-list"></div>
+          </section>
 
-        <section>
-          <h3>项目经历</h3>
-          <div id="previewProjects" class="resume-experience-list"></div>
-        </section>
-
-        <section>
-          <h3>实习经历</h3>
-          <div id="previewInternship" class="resume-experience-list"></div>
-        </section>
-
-        <section id="previewSelfEvaluationSection">
-          <h3>自我评价</h3>
-          <p id="previewSelfEvaluation"></p>
-        </section>
-      </article>
-    </section>
-  </main>
+          <section id="previewSelfEvaluationSection">
+            <h3>自我评价</h3>
+            <p id="previewSelfEvaluation"></p>
+          </section>
+        </article>
+      </section>
+    </main>
+  </div>
 
   <div id="importModal" class="import-modal" aria-hidden="true">
     <div class="import-modal-backdrop" data-close-import-modal></div>
@@ -430,9 +535,22 @@
     </section>
   </div>
 
+  <div id="scanConnectModal" class="scan-connect-modal" aria-hidden="true">
+    <div class="scan-connect-backdrop" data-close-scan-connect-modal></div>
+    <section class="scan-connect-dialog" role="dialog" aria-modal="true" aria-labelledby="scanConnectTitle">
+      <div class="scan-connect-head">
+        <h2 id="scanConnectTitle">扫码连接手机</h2>
+        <button id="closeScanConnectBtn" class="modal-close-btn" type="button" aria-label="关闭扫码连接弹窗">×</button>
+      </div>
+      <div id="desktopQrCode" class="desktop-qr-code" aria-label="手机连接二维码"></div>
+      <p id="desktopQrLink" class="current-link"></p>
+    </section>
+  </div>
+
   <div id="toastMessage" class="toast-message" role="status" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
   <script src="script.js"></script>
 </body>
 
