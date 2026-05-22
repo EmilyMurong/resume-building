@@ -25,9 +25,20 @@ function getFunctionsBaseUrl() {
   );
 }
 
+function readFrontendAnonKey() {
+  try {
+    const script = readFileSync(resolve("script.js"), "utf8");
+    const match = script.match(/const supabaseAnonKey = "([^"]+)"/);
+
+    return match?.[1] ?? "";
+  } catch {
+    return "";
+  }
+}
+
 async function callFunction(baseUrl, name, payload) {
   const headers = { "Content-Type": "application/json" };
-  const anonKey = process.env.SUPABASE_ANON_KEY?.trim();
+  const anonKey = process.env.SUPABASE_ANON_KEY?.trim() || readFrontendAnonKey();
 
   if (anonKey) {
     headers.apikey = anonKey;
@@ -91,23 +102,79 @@ const createResult = await callFunction(baseUrl, "create-cloud-draft", {
 printStep(createResult);
 assertOk(createResult);
 
-const { draftId, draftToken } = createResult.body;
-if (!draftId || !draftToken) {
-  throw new Error("create-cloud-draft did not return draftId and draftToken");
+const { draftId, draftToken, connectionCode } = createResult.body;
+if (!draftId || !draftToken || !connectionCode) {
+  throw new Error(
+    "create-cloud-draft did not return draftId, draftToken, and connectionCode",
+  );
+}
+
+const waitingStatusResult = await callFunction(baseUrl, "check-connection-status", {
+  draftId,
+  draftToken,
+  connectionCode,
+});
+printStep(waitingStatusResult);
+assertOk(waitingStatusResult);
+
+if (waitingStatusResult.body.connected) {
+  throw new Error("QR session should not be connected before phone connect");
+}
+
+const connectResult = await callFunction(baseUrl, "connect-cloud-draft", {
+  draftId,
+  code: connectionCode,
+});
+printStep(connectResult);
+assertOk(connectResult);
+
+if (connectResult.body.draftToken) {
+  throw new Error("connect-cloud-draft must not issue or return a draftToken");
+}
+
+if (connectResult.body.draftId !== draftId) {
+  throw new Error("connect-cloud-draft returned the wrong draftId");
+}
+
+const connectedStatusResult = await callFunction(baseUrl, "check-connection-status", {
+  draftId,
+  draftToken,
+  connectionCode,
+});
+printStep(connectedStatusResult);
+assertOk(connectedStatusResult);
+
+if (!connectedStatusResult.body.connected) {
+  throw new Error("QR session should be connected after phone auto connect");
+}
+
+const desktopInitialLoadResult = await callFunction(baseUrl, "load-cloud-draft", {
+  draftId,
+  draftToken,
+});
+printStep(desktopInitialLoadResult);
+assertOk(desktopInitialLoadResult);
+
+if (desktopInitialLoadResult.body.resumeJson?.updatedBy !== "create-cloud-draft") {
+  throw new Error("desktop load did not see the QR-created resume");
 }
 
 const saveResult = await callFunction(baseUrl, "save-cloud-draft", {
   draftId,
   draftToken,
   resumeJson: savedResume,
-  lastSyncSource: "test-cloud-draft-flow",
+  lastSyncSource: "mobile",
 });
 printStep(saveResult);
 assertOk(saveResult);
 
 const loadResult = await callFunction(baseUrl, "load-cloud-draft", {
   draftId,
-  draftToken,
+  connectionCode,
 });
 printStep(loadResult);
 assertOk(loadResult);
+
+if (loadResult.body.resumeJson?.updatedBy !== "save-cloud-draft") {
+  throw new Error("desktop load did not see the mobile-saved resume");
+}

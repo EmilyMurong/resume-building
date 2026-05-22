@@ -1,7 +1,6 @@
 import { handleCors } from "../_shared/cors.ts";
 import { errorResponse, jsonResponse } from "../_shared/responses.ts";
 import { getServiceClient } from "../_shared/supabase.ts";
-import { generateEditToken, hashAccessToken } from "../_shared/tokens.ts";
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
@@ -12,8 +11,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { code } = await req.json();
-    const normalizedCode = String(code ?? "").trim();
+    const { code, connectionCode, connection_code, draftId, draft_id } =
+      await req.json();
+    const normalizedCode = String(code ?? connectionCode ?? connection_code ?? "")
+      .trim();
+    const normalizedDraftId = String(draftId ?? draft_id ?? "").trim();
 
     if (!/^\d{6}$/.test(normalizedCode)) {
       return errorResponse("code must be a 6 digit string");
@@ -30,6 +32,10 @@ Deno.serve(async (req) => {
 
     if (connectionError || !connection) {
       return errorResponse("Connection code is invalid", 404);
+    }
+
+    if (normalizedDraftId && normalizedDraftId !== connection.draft_id) {
+      return errorResponse("Connection code does not match draft", 404);
     }
 
     await supabase
@@ -68,21 +74,6 @@ Deno.serve(async (req) => {
       return errorResponse("Cloud draft is not available", 404);
     }
 
-    const draftToken = generateEditToken();
-    const accessTokenHash = await hashAccessToken(draftToken);
-
-    const { error: tokenUpdateError } = await supabase
-      .from("resume_drafts")
-      .update({ access_token_hash: accessTokenHash })
-      .eq("id", draft.id)
-      .eq("status", "active")
-      .gt("expires_at", now);
-
-    if (tokenUpdateError) {
-      console.error("connect token update error", tokenUpdateError);
-      return errorResponse("Failed to connect cloud draft", 500);
-    }
-
     await supabase
       .from("connection_codes")
       .update({ status: "used", used_at: now, last_used_at: now })
@@ -90,7 +81,9 @@ Deno.serve(async (req) => {
 
     return jsonResponse({
       draftId: draft.id,
-      draftToken,
+      connectionCode: normalizedCode,
+      readOnly: true,
+      canSave: false,
       resumeJson: draft.data,
       version: draft.version,
       updatedAt: draft.updated_at,

@@ -348,6 +348,36 @@ body.view-editor .editor-view {
   margin-top: 0;
 }
 
+.mobile-debug-box {
+  display: none;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  color: #111827;
+  background: #f9fafb;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.mobile-debug-box.is-visible {
+  display: block;
+}
+
+.mobile-debug-box strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.mobile-debug-box pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
 .connection-code-text {
   min-height: 42px;
   margin: 0;
