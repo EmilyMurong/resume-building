@@ -130,9 +130,13 @@ const translations = {
     desktopQrConnected: "手机已连接。",
     connectCloudDraftFailed: "连接码无效或已过期。",
     cloudDraftSaved: "云端草稿已保存。",
-    cloudDraftRestored: "云端草稿已恢复。",
+    cloudDraftRestored: "已恢复云端草稿。",
     cloudDraftRestoreFailed: "云端草稿恢复失败，已保留本地草稿。",
     cloudDraftSaveFailed: "云端保存失败，已保留本地草稿。",
+    localSavedSyncingCloud: "已保存到本地，正在同步云端…",
+    cloudSavedFast: "云端已保存。",
+    cloudSyncFailedLocalSaved: "云端同步失败，本地已保存。",
+    mobileCloudSessionLost: "手机云端连接已丢失，请重新扫码连接",
     enterConnectionCode: "请输入 6 位连接码。",
     backHome: "← 返回首页",
     linkCopied: "链接已复制。",
@@ -331,6 +335,10 @@ const translations = {
     cloudDraftRestored: "Cloud draft restored.",
     cloudDraftRestoreFailed: "Cloud restore failed. Local draft is kept.",
     cloudDraftSaveFailed: "Cloud save failed. Local draft is kept.",
+    localSavedSyncingCloud: "Saved locally. Syncing cloud...",
+    cloudSavedFast: "Cloud saved.",
+    cloudSyncFailedLocalSaved: "Cloud sync failed. Local draft is saved.",
+    mobileCloudSessionLost: "Mobile cloud connection lost. Please scan the QR code again.",
     enterConnectionCode: "Please enter the 6-digit code.",
     backHome: "← Back Home",
     linkCopied: "Link copied.",
@@ -624,6 +632,10 @@ let currentView = "";
 let cloudSession = null;
 let scanConnectPollTimer = null;
 let scanConnectRequestId = 0;
+let desktopCloudSyncTimer = null;
+let desktopCloudSyncInFlight = false;
+let lastCloudVersion = null;
+let lastCloudUpdatedAt = "";
 let mobileModeHomeOverride = false;
 const desktopBreakpoint = 1024;
 const isMobileModeFromUrl =
@@ -671,26 +683,86 @@ function saveCloudSession(session) {
   localStorage.setItem(cloudSessionStorageKey, JSON.stringify(session));
 }
 
+function updateCloudSession(updates) {
+  const session = loadCloudSession();
+
+  if (!session) {
+    return null;
+  }
+
+  const nextSession = { ...session, ...updates };
+  saveCloudSession(nextSession);
+
+  return nextSession;
+}
+
 function buildCloudSession(result, source, connectionCode = "") {
-  const hasDraftToken = Boolean(result.draftToken);
+  const draftToken = result.draftToken || result.draft_token || "";
+  const hasDraftToken = Boolean(draftToken);
 
   return {
     draftId: result.draftId,
-    draftToken: result.draftToken,
+    draftToken,
     connectionCode: result.connectionCode || connectionCode,
     cloudConnected: true,
     source,
-    readOnly: Boolean(result.readOnly || !hasDraftToken),
-    canSave: Boolean(result.canSave ?? hasDraftToken)
+    readOnly: Boolean(result.readOnly && !hasDraftToken),
+    canSave: Boolean(hasDraftToken || result.canSave)
   };
 }
 
+function saveMobileWritableSession(draftId, draftToken, connectionCode) {
+  const session = {
+    draftId,
+    draftToken,
+    connectionCode,
+    cloudConnected: true,
+    readOnly: false,
+    canSave: true,
+    source: "mobile"
+  };
+
+  saveCloudSession(session);
+  return session;
+}
+
+function saveDesktopReadOnlySession(draftId, connectionCode) {
+  const session = {
+    draftId,
+    connectionCode,
+    readOnly: true,
+    canSave: false,
+    cloudConnected: true,
+    source: "desktop"
+  };
+
+  saveCloudSession(session);
+  return session;
+}
+
 cloudSession = loadCloudSession();
+
+function rememberCloudSnapshot(result) {
+  if (!result) {
+    return;
+  }
+
+  lastCloudVersion = result.version ?? lastCloudVersion;
+  lastCloudUpdatedAt = result.updatedAt || lastCloudUpdatedAt;
+  updateCloudSession({
+    version: result.version,
+    updatedAt: result.updatedAt
+  });
+}
 
 const mobileDebugState = {
   mode: "",
   draftId: "",
   code: "",
+  draftTokenExists: false,
+  sessionDraftId: "",
+  sessionConnectionCode: "",
+  sessionDraftTokenExists: false,
   autoConnectStarted: false,
   connectCloudDraftResponse: "",
   connectCloudDraftError: ""
@@ -770,6 +842,8 @@ async function callCloudFunction(functionName, payload) {
   if (!response.ok) {
     const error = new Error(body?.error || body?.message || functionName);
     error.status = response.status;
+    error.body = body;
+    error.functionName = functionName;
     throw error;
   }
 
@@ -790,15 +864,21 @@ async function createCloudDraft() {
   return result;
 }
 
-async function connectCloudDraft(code, draftId = "") {
+async function connectCloudDraft(code, draftId = "", draftToken = "") {
   const payload = draftId ? { draftId, connectionCode: code, code } : { code };
   const result = await callCloudFunction("connect-cloud-draft", payload);
+  const source = isDesktopViewport() ? "desktop" : "mobile";
 
-  saveCloudSession(buildCloudSession(
-    result,
-    isDesktopViewport() ? "desktop" : "mobile",
-    code
-  ));
+  if (source === "mobile" && draftToken) {
+    saveMobileWritableSession(result.draftId || draftId, draftToken, code);
+  } else {
+    saveCloudSession(buildCloudSession(
+      result,
+      source,
+      code
+    ));
+  }
+
   applyResumeData(result.resumeJson || {});
   saveResumeData();
   refreshResumeState();
@@ -841,11 +921,14 @@ async function saveCloudDraft() {
     return null;
   }
 
+  const source = isDesktopViewport() ? "desktop" : "mobile";
+
   return callCloudFunction("save-cloud-draft", {
     draftId: session.draftId,
     draftToken: session.draftToken,
     resumeJson: getResumeDataFromForm(),
-    lastSyncSource: isDesktopViewport() ? "desktop" : "mobile"
+    source,
+    lastSyncSource: source
   });
 }
 
@@ -883,8 +966,9 @@ function getMobileConnectParams() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code")?.replace(/\D/g, "").slice(0, 6) || "";
   const draftId = params.get("draftId") || params.get("draft_id") || "";
+  const draftToken = params.get("draftToken") || params.get("draft_token") || "";
 
-  return { draftId, code };
+  return { draftId, code, draftToken };
 }
 
 function renderQrToImage(image, text) {
@@ -937,6 +1021,11 @@ function renderDesktopQr(mobileUrl) {
 
 function showView(viewName) {
   currentView = viewName;
+
+  if (viewName !== "editor") {
+    stopDesktopCloudPolling();
+  }
+
   document.body.classList.remove("view-landing", "view-mobile-guide", "view-editor");
   document.body.classList.add(`view-${viewName.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`);
 
@@ -954,6 +1043,27 @@ function showView(viewName) {
 
   if (viewName === "mobileGuide") {
     updateMobileGuideLink();
+  }
+
+  if (viewName === "editor" && isMobileModeFromUrl) {
+    const phoneSession = loadCloudSession();
+    console.log("[PHONE SESSION] before editor", phoneSession);
+    console.log("[PHONE SESSION] draftId", phoneSession?.draftId || "");
+    console.log("[PHONE SESSION] connectionCode", phoneSession?.connectionCode || "");
+    console.log("[PHONE SESSION] draftToken exists", Boolean(phoneSession?.draftToken));
+    updateMobileDebugBox({
+      sessionDraftId: phoneSession?.draftId || "",
+      sessionConnectionCode: phoneSession?.connectionCode || "",
+      sessionDraftTokenExists: Boolean(phoneSession?.draftToken)
+    });
+  }
+
+  if (viewName === "editor" && !isMobileModeFromUrl) {
+    window.setTimeout(() => {
+      if (currentView === "editor" && isDesktopReadOnlyCloudSession()) {
+        startDesktopCloudPolling();
+      }
+    }, 0);
   }
 
   window.scrollTo({ top: 0, left: 0 });
@@ -1069,12 +1179,16 @@ function startScanConnectPolling(session) {
         draftId: session?.draftId,
         connectionCode: session?.connectionCode
       });
+      saveDesktopReadOnlySession(session.draftId, session.connectionCode);
+      console.log("[DESKTOP] saved session", loadCloudSession());
+      console.log("[DESKTOP] session confirmed", isDesktopReadOnlyCloudSession());
       stopScanConnectPolling();
       await refreshFromCloudSession();
       closeScanConnectModal();
       connectionStatus.textContent = t("desktopQrConnected");
       showToast(t("desktopQrConnected"));
       showView("editor");
+      startDesktopCloudPolling();
     } catch (error) {
       console.error("check connection status failed", error);
     }
@@ -1093,29 +1207,40 @@ async function openScanConnectModal() {
 
   try {
     const result = await createCloudDraft();
-    const session = loadCloudSession();
+    const draftToken = result.draftToken || result.draft_token || "";
+    const desktopSession = saveDesktopReadOnlySession(
+      result.draftId,
+      result.connectionCode
+    );
+    const pollingSession = {
+      ...desktopSession,
+      draftToken
+    };
     console.log("[QR] created draft", {
       draftId: result.draftId,
-      connectionCode: result.connectionCode
+      connectionCode: result.connectionCode,
+      draftTokenExists: Boolean(draftToken)
     });
+    console.log("[QR] desktop draftId", result.draftId);
+    console.log("[QR] connectionCode", result.connectionCode);
+    console.log("[QR] draftToken exists", Boolean(draftToken));
 
-    if (
-      requestId !== scanConnectRequestId ||
-      !scanConnectModal.classList.contains("is-open")
-    ) {
+    if (requestId !== scanConnectRequestId) {
       return;
     }
 
     const mobileUrl = getMobileModeUrl({
       draftId: result.draftId,
-      code: result.connectionCode
+      code: result.connectionCode,
+      draftToken
     });
     console.log("[QR] generated url", mobileUrl);
+    console.log("[QR] generated url contains draftToken", mobileUrl.includes("draftToken="));
 
     renderDesktopQr(mobileUrl);
     desktopQrLink.textContent = mobileUrl;
     connectionStatus.textContent = t("desktopQrReady");
-    startScanConnectPolling(session);
+    startScanConnectPolling(pollingSession);
   } catch (error) {
     console.error("create desktop QR session failed", error);
     desktopQrLink.textContent = t("connectionCodeFailed");
@@ -1125,8 +1250,6 @@ async function openScanConnectModal() {
 }
 
 function closeScanConnectModal() {
-  scanConnectRequestId += 1;
-  stopScanConnectPolling();
   scanConnectModal.classList.remove("is-open");
   scanConnectModal.setAttribute("aria-hidden", "true");
   openScanConnectBtn.focus();
@@ -3068,6 +3191,29 @@ function isInvalidCloudSessionError(error) {
   return error?.status === 404 || error?.status === 410;
 }
 
+function isDesktopReadOnlyCloudSession(session = loadCloudSession()) {
+  return Boolean(
+    session?.cloudConnected &&
+    session?.readOnly &&
+    session?.source === "desktop" &&
+    session?.draftId &&
+    session?.connectionCode
+  );
+}
+
+function isUserEditingResume() {
+  const activeElement = document.activeElement;
+
+  return Boolean(
+    activeElement &&
+    editorView?.contains(activeElement) &&
+    (
+      activeElement.matches("input, textarea, select") ||
+      activeElement.isContentEditable
+    )
+  );
+}
+
 async function refreshFromCloudSession() {
   const session = loadCloudSession();
 
@@ -3076,16 +3222,24 @@ async function refreshFromCloudSession() {
   }
 
   try {
+    console.log("[DESKTOP SYNC] loading cloud", cloudSession);
     const result = await loadCloudDraft();
-    console.log("[DESKTOP] load response", result);
+    console.log("[DESKTOP SYNC] load response", result);
+    const localVersion = lastCloudVersion;
+    const cloudVersion = result?.version;
+    console.log("[DESKTOP SYNC] local version", localVersion);
+    console.log("[DESKTOP SYNC] cloud version", cloudVersion);
 
     if (!result?.resumeJson) {
       return;
     }
 
+    console.log("[DESKTOP SYNC] applying update");
+    rememberCloudSnapshot(result);
     applyResumeData(result.resumeJson);
     saveResumeData();
     refreshResumeState();
+    console.log("[DESKTOP SYNC] preview refreshed");
   } catch (error) {
     if (isInvalidCloudSessionError(error)) {
       saveCloudSession(null);
@@ -3093,24 +3247,113 @@ async function refreshFromCloudSession() {
   }
 }
 
-async function restoreCloudSessionOnInit() {
+function stopDesktopCloudPolling() {
+  if (desktopCloudSyncTimer) {
+    window.clearInterval(desktopCloudSyncTimer);
+    desktopCloudSyncTimer = null;
+  }
+}
+
+async function pollDesktopReadOnlyCloudDraft() {
   const session = loadCloudSession();
 
-  if (isMobileModeFromUrl || !session?.cloudConnected) {
-    return false;
+  if (
+    desktopCloudSyncInFlight ||
+    currentView !== "editor" ||
+    !isDesktopReadOnlyCloudSession(session)
+  ) {
+    return;
   }
 
+  desktopCloudSyncInFlight = true;
+
   try {
+    console.log("[DESKTOP SYNC] loading cloud", cloudSession);
     const result = await loadCloudDraft();
+    console.log("[DESKTOP SYNC] load response", result);
+    const localVersion = lastCloudVersion;
+    const cloudVersion = result?.version;
+    console.log("[DESKTOP SYNC] local version", localVersion);
+    console.log("[DESKTOP SYNC] cloud version", cloudVersion);
 
     if (!result?.resumeJson) {
-      return false;
+      return;
     }
 
+    const versionChanged =
+      result.version !== undefined &&
+      result.version !== lastCloudVersion;
+    const updatedAtChanged =
+      result.updatedAt &&
+      result.updatedAt !== lastCloudUpdatedAt;
+
+    if (!versionChanged && !updatedAtChanged) {
+      return;
+    }
+
+    console.log("[DESKTOP SYNC] applying update");
+    rememberCloudSnapshot(result);
     applyResumeData(result.resumeJson);
     saveResumeData();
     refreshResumeState();
-    showView("editor");
+    console.log("[DESKTOP SYNC] preview refreshed");
+  } catch (error) {
+    console.error("desktop cloud sync failed", error);
+  } finally {
+    desktopCloudSyncInFlight = false;
+  }
+}
+
+function startDesktopCloudPolling() {
+  const session = loadCloudSession();
+
+  stopDesktopCloudPolling();
+
+  if (!isDesktopReadOnlyCloudSession(session)) {
+    return;
+  }
+
+  console.log("[DESKTOP SYNC] start polling");
+
+  console.log("[DESKTOP SYNC] poll tick");
+  pollDesktopReadOnlyCloudDraft();
+
+  desktopCloudSyncTimer = window.setInterval(() => {
+    console.log("[DESKTOP SYNC] poll tick");
+    pollDesktopReadOnlyCloudDraft();
+  }, 3000);
+}
+
+async function restoreCloudSessionOnInit() {
+  const session = loadCloudSession();
+
+  if (isMobileModeFromUrl || !isDesktopReadOnlyCloudSession(session)) {
+    return false;
+  }
+
+  console.log("[DESKTOP RESTORE] found session", session);
+  showView("editor");
+
+  try {
+    console.log("[DESKTOP SYNC] loading cloud", cloudSession);
+    const result = await loadCloudDraft();
+    console.log("[DESKTOP RESTORE] load response", result);
+    const localVersion = lastCloudVersion;
+    const cloudVersion = result?.version;
+    console.log("[DESKTOP SYNC] local version", localVersion);
+    console.log("[DESKTOP SYNC] cloud version", cloudVersion);
+
+    if (!result?.resumeJson) {
+      console.log("[DESKTOP RESTORE] editor restored");
+      return true;
+    }
+
+    console.log("[DESKTOP SYNC] applying update");
+    rememberCloudSnapshot(result);
+    applyResumeData(result.resumeJson);
+    saveResumeData();
+    refreshResumeState();
+    console.log("[DESKTOP RESTORE] editor restored");
     window.setTimeout(() => {
       showToast(t("cloudDraftRestored"));
     }, 200);
@@ -3119,18 +3362,36 @@ async function restoreCloudSessionOnInit() {
   } catch (error) {
     console.error("restore cloud draft failed", error);
     showErrorToast(t("cloudDraftRestoreFailed"));
-    return false;
+    return true;
+  } finally {
+    startDesktopCloudPolling();
   }
 }
 
 async function autoConnectMobileFromUrl() {
-  const { draftId, code } = getMobileConnectParams();
-  const mode = new URLSearchParams(window.location.search).get("mode");
-  console.log("[PHONE] url params", { mode, draftId, code });
+  const params = new URLSearchParams(window.location.search);
+  const mode = params.get("mode");
+  const code = params.get("code")?.replace(/\D/g, "").slice(0, 6) || "";
+  const draftId = params.get("draftId") || params.get("draft_id") || "";
+  const urlDraftToken = params.get("draftToken") || params.get("draft_token") || "";
+  console.log("[PHONE] url params", { mode, draftId, code, hasDraftToken: Boolean(urlDraftToken) });
+  console.log("[PHONE] url draftId", draftId);
+  console.log("[PHONE] url code", code);
+  console.log("[PHONE] url draftToken exists", Boolean(urlDraftToken));
+  if (draftId && code && urlDraftToken) {
+    saveMobileWritableSession(draftId, urlDraftToken, code);
+    console.log("[PHONE] saved session draftToken exists", Boolean(loadCloudSession()?.draftToken));
+  }
+
+  const initialPhoneSession = loadCloudSession();
   updateMobileDebugBox({
     mode,
     draftId,
     code,
+    draftTokenExists: Boolean(urlDraftToken),
+    sessionDraftId: initialPhoneSession?.draftId || "",
+    sessionConnectionCode: initialPhoneSession?.connectionCode || "",
+    sessionDraftTokenExists: Boolean(initialPhoneSession?.draftToken),
     autoConnectStarted: false,
     connectCloudDraftResponse: "",
     connectCloudDraftError: ""
@@ -3151,9 +3412,18 @@ async function autoConnectMobileFromUrl() {
   updateMobileDebugBox({ autoConnectStarted: true });
 
   try {
-    const result = await connectCloudDraft(code, draftId);
+    console.log("[PHONE] url draftToken exists", Boolean(urlDraftToken));
+    const result = await connectCloudDraft(code, draftId, urlDraftToken);
     console.log("[PHONE] auto connect response", result);
+    if (urlDraftToken) {
+      saveMobileWritableSession(result.draftId || draftId, urlDraftToken, code);
+      console.log("[PHONE] saved session draftToken exists", Boolean(loadCloudSession()?.draftToken));
+    }
+    const savedPhoneSession = loadCloudSession();
     updateMobileDebugBox({
+      sessionDraftId: savedPhoneSession?.draftId || "",
+      sessionConnectionCode: savedPhoneSession?.connectionCode || "",
+      sessionDraftTokenExists: Boolean(savedPhoneSession?.draftToken),
       connectCloudDraftResponse: result,
       connectCloudDraftError: ""
     });
@@ -3175,6 +3445,67 @@ async function autoConnectMobileFromUrl() {
 }
 
 async function saveDraft() {
+  const isMobileSave = isMobileModeFromUrl || !isDesktopViewport();
+
+  if (isMobileSave) {
+    console.log("[MOBILE SAVE] start");
+    const session = loadCloudSession();
+    console.log("[MOBILE SAVE] saving draftId", session?.draftId || "");
+    console.log("[MOBILE SAVE] connectionCode", session?.connectionCode || "");
+    console.log("[MOBILE SAVE] draftToken exists", Boolean(session?.draftToken));
+
+    if (!session?.draftId || !session?.draftToken) {
+      console.error("[MOBILE SAVE] error", {
+        message: "Missing draftToken for mobile cloud save",
+        cloudSession,
+        draftId: session?.draftId,
+        draftToken: session?.draftToken,
+        connectionCode: session?.connectionCode,
+        source: "mobile"
+      });
+
+      showErrorToast(t("mobileCloudSessionLost"));
+      return;
+    }
+
+    saveResumeData();
+    console.log("[MOBILE SAVE] local saved");
+    showDraftStatus(t("localSavedSyncingCloud"));
+
+    window.setTimeout(() => {
+      console.log("[MOBILE SAVE] upload start", {
+        cloudSession,
+        draftId: session.draftId,
+        draftToken: session.draftToken,
+        connectionCode: session.connectionCode,
+        source: "mobile"
+      });
+
+      saveCloudDraft()
+        .then((result) => {
+          console.log("[MOBILE SAVE] upload response", result);
+          console.log("[MOBILE SAVE] returned draftId", result?.draftId || "");
+          console.log("[MOBILE SAVE] cloud version", result?.version);
+          console.log("[MOBILE SAVE] updatedAt", result?.updatedAt);
+
+          if (!result) {
+            showDraftStatus(t("draftSaved"));
+            return;
+          }
+
+          rememberCloudSnapshot(result);
+          showDraftStatus(t("cloudSavedFast"));
+        })
+        .catch((error) => {
+          console.error("[MOBILE SAVE] error", error);
+
+          console.error("save cloud draft failed", error);
+          showErrorToast(t("cloudSyncFailedLocalSaved"));
+        });
+    }, 0);
+    return;
+  }
+
   saveResumeData();
 
   const session = loadCloudSession();
@@ -3184,25 +3515,28 @@ async function saveDraft() {
     return;
   }
 
-  try {
-    const result = await saveCloudDraft();
+  showDraftStatus(t("localSavedSyncingCloud"));
 
-    if (!result) {
-      showDraftStatus(t("draftSaved"));
-      return;
-    }
+  window.setTimeout(() => {
+    saveCloudDraft()
+      .then((result) => {
+        if (!result) {
+          showDraftStatus(t("draftSaved"));
+          return;
+        }
 
-    showDraftStatus(t("cloudDraftSaved"));
-  } catch (error) {
-    if (isInvalidCloudSessionError(error)) {
-      saveCloudSession(null);
-      showDraftStatus(t("draftSaved"));
-      return;
-    }
+        rememberCloudSnapshot(result);
+        showDraftStatus(t("cloudSavedFast"));
+      })
+      .catch((error) => {
+        if (isInvalidCloudSessionError(error)) {
+          saveCloudSession(null);
+        }
 
-    console.error("save cloud draft failed", error);
-    showErrorToast(t("cloudDraftSaveFailed"));
-  }
+        console.error("save cloud draft failed", error);
+        showErrorToast(t("cloudSyncFailedLocalSaved"));
+      });
+  }, 0);
 }
 
 function hasEnoughResumeContent() {
@@ -3530,6 +3864,7 @@ connectCloudDraftBtn.addEventListener("click", async () => {
     connectionStatus.textContent = t("connectedCloudDraft");
     showToast(t("connectedCloudDraft"));
     showView("editor");
+    startDesktopCloudPolling();
   } catch (error) {
     console.error("connect cloud draft failed", error);
     connectionStatus.textContent = t("connectCloudDraftFailed");
@@ -3607,9 +3942,16 @@ document.querySelectorAll(".language-switch").forEach((switchElement) => {
 });
 
 startBuildingBtn.addEventListener("click", () => {
+  if (isMobileModeFromUrl) {
+    loadCloudSession();
+    showView("editor");
+    return;
+  }
+
   loadCloudSession();
   refreshFromCloudSession();
   showView("editor");
+  startDesktopCloudPolling();
 });
 
 openScanConnectBtn.addEventListener("click", () => {

@@ -27,13 +27,14 @@ Deno.serve(async (req) => {
       draft_token,
       resumeJson,
       resume_json,
+      source,
       lastSyncSource,
       last_sync_source,
     } = await req.json();
     const normalizedDraftId = draftId ?? draft_id;
     const normalizedDraftToken = draftToken ?? draft_token;
     const resumeData = resumeJson ?? resume_json;
-    const syncSource = normalizeSource(lastSyncSource ?? last_sync_source);
+    const syncSource = normalizeSource(source ?? lastSyncSource ?? last_sync_source);
 
     if (!normalizedDraftId || !normalizedDraftToken) {
       return errorResponse("draftId and draftToken are required");
