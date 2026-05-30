@@ -126,6 +126,29 @@ body.view-editor .editor-view {
   line-height: 1.7;
 }
 
+.mobile-landing-tip {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mobile-feature-tags {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mobile-feature-tags span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #4b5563;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 750;
+}
+
 .landing-primary-btn,
 .guide-secondary-btn,
 .guide-link-btn,
@@ -155,6 +178,10 @@ body.view-editor .editor-view {
 .landing-action-row .guide-secondary-btn {
   width: auto;
   margin-top: 0;
+}
+
+.mobile-direct-only {
+  display: none;
 }
 
 .landing-primary-btn {
@@ -261,6 +288,84 @@ body.view-editor .editor-view {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.55;
+}
+
+body.mobile-direct-landing .landing-page {
+  padding: 16px;
+}
+
+body.mobile-direct-landing .landing-shell {
+  min-height: calc(100vh - 32px);
+  grid-template-rows: auto 1fr;
+  align-content: start;
+  gap: 18px;
+}
+
+body.mobile-direct-landing .landing-nav {
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+body.mobile-direct-landing .landing-nav .language-switch {
+  align-self: stretch;
+  justify-content: center;
+}
+
+body.mobile-direct-landing .landing-hero {
+  align-items: start;
+  border: 0;
+  padding: 10px 0 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.mobile-direct-landing .landing-hero-copy {
+  max-width: none;
+  gap: 12px;
+}
+
+body.mobile-direct-landing .landing-hero h1 {
+  font-size: 34px;
+  line-height: 1.08;
+}
+
+body.mobile-direct-landing .landing-subtitle {
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+body.mobile-direct-landing .landing-description {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+body.mobile-direct-landing .landing-action-row {
+  display: grid;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+body.mobile-direct-landing .landing-action-row .landing-primary-btn,
+body.mobile-direct-landing .landing-action-row .guide-secondary-btn,
+body.mobile-direct-landing .connection-input-row .guide-secondary-btn {
+  width: 100%;
+}
+
+body.mobile-direct-landing .desktop-only {
+  display: none;
+}
+
+body.mobile-direct-landing .mobile-direct-only {
+  display: flex;
+}
+
+body.mobile-direct-landing .connection-panel {
+  margin-top: 2px;
+  padding: 12px;
+}
+
+body.mobile-direct-landing .connection-panel label {
+  font-size: 13px;
 }
 
 .mobile-guide-shell {

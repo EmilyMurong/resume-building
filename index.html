@@ -30,8 +30,10 @@
           <p class="landing-description">支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。</p>
           <div class="landing-action-row">
             <button id="startBuildingBtn" class="landing-primary-btn" type="button">开始创建简历</button>
-            <button id="openScanConnectBtn" class="guide-secondary-btn" type="button">扫码连接手机</button>
+            <button id="copyDesktopLinkBtn" class="guide-secondary-btn mobile-direct-only" type="button" data-mobile-direct-only>复制链接到电脑打开</button>
+            <button id="openScanConnectBtn" class="guide-secondary-btn desktop-only" type="button" data-desktop-only>扫码连接手机</button>
           </div>
+          <p class="mobile-landing-tip mobile-direct-only" data-mobile-direct-only>如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。</p>
           <div class="connection-panel" aria-label="输入连接码">
             <label for="connectionCodeInput">输入连接码</label>
             <div class="connection-input-row">
@@ -40,10 +42,17 @@
             </div>
             <p id="connectionStatus" class="connection-status" aria-live="polite"></p>
           </div>
+          <div class="mobile-feature-tags mobile-direct-only" aria-label="核心流程" data-mobile-direct-only>
+            <span>导入</span>
+            <span>填写</span>
+            <span>保存</span>
+            <span>同步</span>
+            <span>PDF</span>
+          </div>
         </div>
       </div>
 
-      <section class="core-features" aria-labelledby="coreFeaturesTitle">
+      <section class="core-features desktop-only" aria-labelledby="coreFeaturesTitle" data-desktop-only>
         <div class="core-features-head">
           <h2 id="coreFeaturesTitle">核心功能</h2>
         </div>

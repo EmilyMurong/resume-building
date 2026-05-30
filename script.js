@@ -71,6 +71,7 @@ const desktopQrCode = document.getElementById("desktopQrCode");
 const desktopQrLink = document.getElementById("desktopQrLink");
 const backHomeBtn = document.getElementById("backHomeBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
+const copyDesktopLinkBtn = document.getElementById("copyDesktopLinkBtn");
 const startMobileEditBtn = document.getElementById("startMobileEditBtn");
 const mobileGuideHomeBtn = document.getElementById("mobileGuideHomeBtn");
 const mobileGuideHomeBtns = document.querySelectorAll("[data-mobile-guide-home]");
@@ -99,6 +100,11 @@ const translations = {
     langToggle: "EN",
     landingSubtitle: "手机访问，电脑编辑，快速生成专业简历",
     landingDescription: "支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。",
+    mobileLandingSubtitle: "手机端可快速填写简历内容，也可以复制链接到电脑继续编辑。",
+    mobileLandingDescription: "轻量填写、保存草稿，需要电脑实时同步时可在电脑端扫码连接手机。",
+    copyDesktopLink: "复制链接到电脑打开",
+    mobileLandingTip: "如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。",
+    mobileConnectionCodeLabel: "已有连接码？输入 6 位连接码继续",
     startBuilding: "开始创建简历",
     scanConnectPhone: "扫码连接手机",
     scanConnectTitle: "扫码连接手机",
@@ -308,6 +314,11 @@ const translations = {
     langToggle: "中文",
     landingSubtitle: "Mobile access, desktop editing, and smart resume export",
     landingDescription: "Import TXT, DOCX, or PDF resumes, auto-fill your form, preview in real time, switch templates, and export as PDF.",
+    mobileLandingSubtitle: "Quickly fill in resume content on mobile, or copy the link to continue on desktop.",
+    mobileLandingDescription: "Use mobile for lightweight editing and drafts. For live desktop sync, open the site on desktop and scan the QR code.",
+    copyDesktopLink: "Copy Link for Desktop",
+    mobileLandingTip: "For live desktop sync, open the website on your computer and scan the QR code to connect your phone.",
+    mobileConnectionCodeLabel: "Have a code? Enter the 6-digit code to continue",
     startBuilding: "Start Building",
     scanConnectPhone: "Scan to Connect",
     scanConnectTitle: "Scan to Connect Phone",
@@ -663,6 +674,31 @@ const isMobileModeFromUrl =
 
 function isDesktopViewport() {
   return !isMobileModeFromUrl && window.innerWidth >= desktopBreakpoint;
+}
+
+function isLocalDevelopmentHost() {
+  return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+function isLikelyMobileBrowser() {
+  const userAgent = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const mobileUserAgent = /Android|iPhone|iPod|Windows Phone|Mobi/i.test(userAgent);
+  const iPadDesktopMode = platform === "MacIntel" && navigator.maxTouchPoints > 1;
+
+  return mobileUserAgent || iPadDesktopMode;
+}
+
+function isMobileDirectLanding() {
+  return !isMobileModeFromUrl && !isLocalDevelopmentHost() && isLikelyMobileBrowser();
+}
+
+function logLandingMode(details) {
+  console.log("[LANDING MODE] host", details.host);
+  console.log("[LANDING MODE] isLocalhost", details.isLocalhost);
+  console.log("[LANDING MODE] isRealMobile", details.isRealMobile);
+  console.log("[LANDING MODE] hasMobileParams", details.hasMobileParams);
+  console.log("[LANDING MODE] final mode", details.finalMode);
 }
 
 function getValue(fieldName) {
@@ -1091,6 +1127,49 @@ function updateMobileGuideState() {
   }
 }
 
+function getLandingModeDetails(viewName = currentView) {
+  const isLocalhost = isLocalDevelopmentHost();
+  const isRealMobile = isLikelyMobileBrowser();
+  const hasMobileParams = hasCompleteMobileConnectParams();
+  const finalMode = isMobileModeFromUrl
+    ? (hasMobileParams ? "mobile-connected-guide" : "mobile-guide-fallback")
+    : (viewName === "landing" && !isLocalhost && isRealMobile ? "mobile-direct-landing" : "desktop-landing");
+
+  return {
+    host: window.location.hostname,
+    isLocalhost,
+    isRealMobile,
+    hasMobileParams,
+    finalMode
+  };
+}
+
+function renderLandingMode(viewName = currentView) {
+  const details = getLandingModeDetails(viewName);
+  const isMobileDirect = viewName === "landing" && details.finalMode === "mobile-direct-landing";
+
+  document.body.classList.remove("mobile-direct-landing");
+  document.querySelectorAll("[data-mobile-direct-only]").forEach((element) => {
+    element.hidden = true;
+  });
+  document.querySelectorAll("[data-desktop-only]").forEach((element) => {
+    element.hidden = false;
+  });
+
+  if (isMobileDirect) {
+    document.body.classList.add("mobile-direct-landing");
+    document.querySelectorAll("[data-mobile-direct-only]").forEach((element) => {
+      element.hidden = false;
+    });
+    document.querySelectorAll("[data-desktop-only]").forEach((element) => {
+      element.hidden = true;
+    });
+  }
+
+  logLandingMode(details);
+  return details;
+}
+
 function renderDesktopQr(mobileUrl) {
   desktopQrLink.textContent = mobileUrl;
 
@@ -1118,6 +1197,7 @@ function showView(viewName) {
 
   document.body.classList.remove("view-landing", "view-mobile-guide", "view-editor");
   document.body.classList.add(`view-${viewName.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}`);
+  renderLandingMode(viewName);
 
   if (landingPage) {
     landingPage.setAttribute("aria-hidden", String(viewName !== "landing"));
@@ -1170,7 +1250,7 @@ function showDefaultEntryView() {
     return;
   }
 
-  showView(isDesktopViewport() ? "landing" : "mobileGuide");
+  showView("landing");
 }
 
 function showToast(message) {
@@ -1409,9 +1489,12 @@ function updateStaticLanguage() {
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
-  setText(".landing-subtitle", t("landingSubtitle"));
-  setText(".landing-description", t("landingDescription"));
+  const useMobileLandingCopy = getLandingModeDetails(currentView).finalMode === "mobile-direct-landing";
+  setText(".landing-subtitle", t(useMobileLandingCopy ? "mobileLandingSubtitle" : "landingSubtitle"));
+  setText(".landing-description", t(useMobileLandingCopy ? "mobileLandingDescription" : "landingDescription"));
   setText("#startBuildingBtn", t("startBuilding"));
+  setText("#copyDesktopLinkBtn", t("copyDesktopLink"));
+  setText(".mobile-landing-tip", t("mobileLandingTip"));
   setText("#openScanConnectBtn", t("scanConnectPhone"));
   setText("#scanConnectTitle", t("scanConnectTitle"));
   setText("#coreFeaturesTitle", t("coreFeaturesTitle"));
@@ -1426,7 +1509,7 @@ function updateStaticLanguage() {
   mobileGuideHomeBtns.forEach((button) => {
     button.textContent = t("mobileGuideHome");
   });
-  setText(".connection-panel label", t("connectionCodeLabel"));
+  setText(".connection-panel label", t(useMobileLandingCopy ? "mobileConnectionCodeLabel" : "connectionCodeLabel"));
   setText("#connectCloudDraftBtn", t("connectCloudDraft"));
   setText("#generateConnectionCodeBtn", t("generateConnectionCode"));
   setPlaceholder("connectionCodeInput", t("connectionCodePlaceholder"));
@@ -4109,11 +4192,23 @@ copyLinkBtn.addEventListener("click", async () => {
   }
 });
 
+copyDesktopLinkBtn.addEventListener("click", async () => {
+  const desktopUrl = getShareUrl();
+
+  try {
+    await navigator.clipboard.writeText(desktopUrl);
+    showToast(t("linkCopied"));
+  } catch (error) {
+    showToast(desktopUrl);
+  }
+});
+
 window.addEventListener("resize", () => {
   if (currentView === "editor") {
     return;
   }
 
+  updateStaticLanguage();
   showDefaultEntryView();
 });
 
@@ -4132,6 +4227,7 @@ confirmExportBtn.addEventListener("click", () => {
 });
 
 async function initializeApp() {
+  renderLandingMode("landing");
   loadResumeData();
   renderAllExperienceForms();
   updatePreview();
