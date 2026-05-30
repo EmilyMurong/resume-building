@@ -71,8 +71,12 @@ const desktopQrCode = document.getElementById("desktopQrCode");
 const desktopQrLink = document.getElementById("desktopQrLink");
 const backHomeBtn = document.getElementById("backHomeBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
-const mobileStartEditBtn = document.getElementById("mobileStartEditBtn");
+const startMobileEditBtn = document.getElementById("startMobileEditBtn");
 const mobileGuideHomeBtn = document.getElementById("mobileGuideHomeBtn");
+const mobileGuideHomeBtns = document.querySelectorAll("[data-mobile-guide-home]");
+const mobileGuideConnected = document.getElementById("mobileGuideConnected");
+const mobileGuideFallback = document.getElementById("mobileGuideFallback");
+const mobileGuideDebugCard = document.getElementById("mobileGuideDebugCard");
 const mobileQrImage = document.getElementById("mobileQrImage");
 const currentLinkText = document.getElementById("currentLinkText");
 const generateConnectionCodeBtn = document.getElementById("generateConnectionCodeBtn");
@@ -803,9 +807,15 @@ function renderMobileDebugBox() {
   if (!isMobileModeFromUrl || !shouldShowMobileDebug()) {
     mobileDebugBox.classList.remove("is-visible");
     mobileDebugText.textContent = "";
+    if (mobileGuideDebugCard) {
+      mobileGuideDebugCard.hidden = true;
+    }
     return;
   }
 
+  if (mobileGuideDebugCard) {
+    mobileGuideDebugCard.hidden = false;
+  }
   mobileDebugBox.classList.add("is-visible");
   mobileDebugText.textContent = JSON.stringify(mobileDebugState, null, 2);
 }
@@ -1050,28 +1060,24 @@ function updateMobileGuideLink() {
 }
 
 function setMobileGuideConnectedMode(isConnected) {
-  const mobileGuideCard = mobileGuide?.querySelector(".mobile-guide-card");
-
-  if (mobileGuideCard) {
-    mobileGuideCard.classList.toggle("is-connected", isConnected);
+  if (mobileGuideConnected) {
+    mobileGuideConnected.hidden = !isConnected;
   }
 
-  setText("#mobileGuideTitle", isConnected ? t("mobileConnectedTitle") : t("mobileGuideTitle"));
-  setText(".mobile-guide-description", isConnected ? t("mobileConnectedDescription") : t("mobileGuideDescription"));
-  setText(".mobile-guide-note", isConnected ? t("mobileConnectedNote") : t("mobileGuideNote"));
-  setText("#mobileStartEditBtn", t("mobileStartEdit"));
-
-  const mobileGuideNote = document.querySelector(".mobile-guide-note");
-  if (mobileGuideNote) {
-    mobileGuideNote.hidden = isConnected;
+  if (mobileGuideFallback) {
+    mobileGuideFallback.hidden = isConnected;
   }
 
-  if (mobileStartEditBtn) {
-    mobileStartEditBtn.hidden = !isConnected;
-  }
+  setText("#mobileGuideConnectedTitle", t("mobileConnectedTitle"));
+  setText("#mobileGuideConnectedDescription", t("mobileConnectedDescription"));
+  setText("#mobileGuideTitle", t("mobileGuideTitle"));
+  setText("#mobileGuideDescription", t("mobileGuideDescription"));
+  setText("#mobileGuideNote", t("mobileGuideNote"));
+  setText("#startMobileEditBtn", t("mobileStartEdit"));
 
   if (mobileCloudStatus && isConnected) {
     mobileCloudStatus.textContent = "";
+    connectionCodeText.textContent = "";
   }
 }
 
@@ -1409,12 +1415,17 @@ function updateStaticLanguage() {
   setText("#openScanConnectBtn", t("scanConnectPhone"));
   setText("#scanConnectTitle", t("scanConnectTitle"));
   setText("#coreFeaturesTitle", t("coreFeaturesTitle"));
+  setText("#mobileGuideConnectedTitle", t("mobileConnectedTitle"));
+  setText("#mobileGuideConnectedDescription", t("mobileConnectedDescription"));
   setText("#mobileGuideTitle", t("mobileGuideTitle"));
-  setText(".mobile-guide-description", t("mobileGuideDescription"));
-  setText(".mobile-guide-note", t("mobileGuideNote"));
-  setText("#mobileStartEditBtn", t("mobileStartEdit"));
+  setText("#mobileGuideDescription", t("mobileGuideDescription"));
+  setText("#mobileGuideNote", t("mobileGuideNote"));
+  setText("#startMobileEditBtn", t("mobileStartEdit"));
   setText("#copyLinkBtn", t("copyLink"));
   setText("#mobileGuideHomeBtn", t("mobileGuideHome"));
+  mobileGuideHomeBtns.forEach((button) => {
+    button.textContent = t("mobileGuideHome");
+  });
   setText(".connection-panel label", t("connectionCodeLabel"));
   setText("#connectCloudDraftBtn", t("connectCloudDraft"));
   setText("#generateConnectionCodeBtn", t("generateConnectionCode"));
@@ -4054,8 +4065,16 @@ startBuildingBtn.addEventListener("click", () => {
   startDesktopCloudPolling();
 });
 
-mobileStartEditBtn.addEventListener("click", () => {
-  loadCloudSession();
+startMobileEditBtn.addEventListener("click", () => {
+  console.log("[MOBILE GUIDE] start edit clicked");
+  const session = loadCloudSession();
+  console.log("[MOBILE GUIDE] session before editor", session);
+
+  if (!session?.draftId || !session?.draftToken) {
+    showErrorToast(t("mobileCloudSessionLost"));
+    return;
+  }
+
   showView("editor");
 });
 
@@ -4067,9 +4086,11 @@ closeScanConnectBtn.addEventListener("click", () => {
   closeScanConnectModal();
 });
 
-mobileGuideHomeBtn.addEventListener("click", () => {
-  mobileModeHomeOverride = true;
-  showView("landing");
+mobileGuideHomeBtns.forEach((button) => {
+  button.addEventListener("click", () => {
+    mobileModeHomeOverride = true;
+    showView("landing");
+  });
 });
 
 backHomeBtn.addEventListener("click", () => {

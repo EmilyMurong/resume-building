@@ -284,6 +284,10 @@ body.view-editor .editor-view {
   box-shadow: var(--shadow);
 }
 
+.mobile-guide-card[hidden] {
+  display: none;
+}
+
 .mobile-guide-card h1 {
   margin: 4px 0 0;
   color: var(--heading);
@@ -301,7 +305,7 @@ body.view-editor .editor-view {
 }
 
 .mobile-connected-status-card {
-  display: none;
+  display: grid;
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -309,21 +313,13 @@ body.view-editor .editor-view {
   text-align: left;
   color: var(--text);
   background: #f8fafc;
+  gap: 4px;
 }
 
 .mobile-connected-status-card p {
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
-}
-
-.mobile-guide-card.is-connected .mobile-connected-status-card {
-  display: grid;
-  gap: 4px;
-}
-
-.mobile-guide-card.is-connected [data-mobile-fallback-only] {
-  display: none;
 }
 
 .qr-frame {
