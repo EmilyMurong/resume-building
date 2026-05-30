@@ -71,6 +71,7 @@ const desktopQrCode = document.getElementById("desktopQrCode");
 const desktopQrLink = document.getElementById("desktopQrLink");
 const backHomeBtn = document.getElementById("backHomeBtn");
 const copyLinkBtn = document.getElementById("copyLinkBtn");
+const mobileStartEditBtn = document.getElementById("mobileStartEditBtn");
 const mobileGuideHomeBtn = document.getElementById("mobileGuideHomeBtn");
 const mobileQrImage = document.getElementById("mobileQrImage");
 const currentLinkText = document.getElementById("currentLinkText");
@@ -113,6 +114,10 @@ const translations = {
     mobileGuideTitle: "手机访问，电脑编辑",
     mobileGuideDescription: "复制下方链接，在电脑浏览器中打开，继续编辑你的简历",
     mobileGuideNote: "也可以使用其他设备扫描二维码打开",
+    mobileConnectedTitle: "手机已连接电脑",
+    mobileConnectedDescription: "你可以在手机上填写或修改简历内容，电脑端会自动同步。",
+    mobileConnectedNote: "",
+    mobileStartEdit: "开始在手机编辑",
     copyLink: "复制链接",
     mobileGuideHome: "返回首页",
     connectionCodeLabel: "输入连接码",
@@ -129,13 +134,16 @@ const translations = {
     desktopQrReady: "请用手机扫码连接。",
     desktopQrConnected: "手机已连接。",
     connectCloudDraftFailed: "连接码无效或已过期。",
-    cloudDraftSaved: "云端草稿已保存。",
+    cloudDraftSaved: "云端已保存，电脑端将自动更新",
     cloudDraftRestored: "已恢复云端草稿。",
     cloudDraftRestoreFailed: "云端草稿恢复失败，已保留本地草稿。",
     cloudDraftSaveFailed: "云端保存失败，已保留本地草稿。",
     localSavedSyncingCloud: "已保存到本地，正在同步云端…",
-    cloudSavedFast: "云端已保存。",
-    cloudSyncFailedLocalSaved: "云端同步失败，本地已保存。",
+    cloudSavedFast: "云端已保存，电脑端将自动更新",
+    cloudSyncFailedLocalSaved: "云端同步失败，本地已保存，请稍后重试",
+    desktopSyncingMobile: "正在同步手机更新…",
+    desktopSynced: "已同步",
+    desktopSyncFailed: "同步失败，请重试",
     mobileCloudSessionLost: "手机云端连接已丢失，请重新扫码连接",
     enterConnectionCode: "请输入 6 位连接码。",
     backHome: "← 返回首页",
@@ -222,7 +230,7 @@ const translations = {
     customSection: "自定义模块",
     smartFillReview: "已完成智能填充。识别结果可能存在误差，请仔细检查并修改后再导出或投递简历。",
     unsupportedFile: "文件格式不支持。请上传 TXT、DOCX 或可复制文字的 PDF 文件。",
-    draftSaved: "草稿已保存。",
+    draftSaved: "已保存到本地",
     formCleared: "表单已清空。",
     moduleExists: "该模块已存在",
     draftRestored: "已恢复上次草稿。",
@@ -315,6 +323,10 @@ const translations = {
     mobileGuideTitle: "Mobile Access, Desktop Editing",
     mobileGuideDescription: "Copy the link below and open it in your desktop browser to continue editing your resume",
     mobileGuideNote: "You can also scan the QR code with another device",
+    mobileConnectedTitle: "Phone Connected to Desktop",
+    mobileConnectedDescription: "You can fill in or edit your resume on your phone. The desktop will sync automatically.",
+    mobileConnectedNote: "",
+    mobileStartEdit: "Start Editing on Phone",
     copyLink: "Copy Link",
     mobileGuideHome: "Back Home",
     connectionCodeLabel: "Connection Code",
@@ -331,13 +343,16 @@ const translations = {
     desktopQrReady: "Scan with your phone to connect.",
     desktopQrConnected: "Phone connected.",
     connectCloudDraftFailed: "The code is invalid or expired.",
-    cloudDraftSaved: "Cloud draft saved.",
+    cloudDraftSaved: "Cloud saved. The desktop will update automatically.",
     cloudDraftRestored: "Cloud draft restored.",
     cloudDraftRestoreFailed: "Cloud restore failed. Local draft is kept.",
     cloudDraftSaveFailed: "Cloud save failed. Local draft is kept.",
     localSavedSyncingCloud: "Saved locally. Syncing cloud...",
-    cloudSavedFast: "Cloud saved.",
-    cloudSyncFailedLocalSaved: "Cloud sync failed. Local draft is saved.",
+    cloudSavedFast: "Cloud saved. The desktop will update automatically.",
+    cloudSyncFailedLocalSaved: "Cloud sync failed. Local draft is saved. Please try again later.",
+    desktopSyncingMobile: "Syncing phone updates...",
+    desktopSynced: "Synced.",
+    desktopSyncFailed: "Sync failed. Please try again.",
     mobileCloudSessionLost: "Mobile cloud connection lost. Please scan the QR code again.",
     enterConnectionCode: "Please enter the 6-digit code.",
     backHome: "← Back Home",
@@ -424,7 +439,7 @@ const translations = {
     customSection: "Custom Section",
     smartFillReview: "Smart fill completed. The recognition result may contain errors. Please review and edit carefully before exporting or submitting your resume.",
     unsupportedFile: "Unsupported file format. Please upload a TXT, DOCX, or text-based PDF file.",
-    draftSaved: "Draft saved.",
+    draftSaved: "Saved locally.",
     formCleared: "Form cleared.",
     moduleExists: "This section already exists.",
     draftRestored: "Previous draft restored.",
@@ -637,6 +652,7 @@ let desktopCloudSyncInFlight = false;
 let lastCloudVersion = null;
 let lastCloudUpdatedAt = "";
 let mobileModeHomeOverride = false;
+let mobileGuideConnectionFailed = false;
 const desktopBreakpoint = 1024;
 const isMobileModeFromUrl =
   new URLSearchParams(window.location.search).get("mode") === "mobile";
@@ -768,8 +784,25 @@ const mobileDebugState = {
   connectCloudDraftError: ""
 };
 
+function shouldShowMobileDebug() {
+  const params = new URLSearchParams(window.location.search);
+  const hostname = window.location.hostname;
+
+  return (
+    params.get("debug") === "1" ||
+    hostname === "localhost" ||
+    hostname === "127.0.0.1"
+  );
+}
+
 function renderMobileDebugBox() {
-  if (!mobileDebugBox || !mobileDebugText || !isMobileModeFromUrl) {
+  if (!mobileDebugBox || !mobileDebugText) {
+    return;
+  }
+
+  if (!isMobileModeFromUrl || !shouldShowMobileDebug()) {
+    mobileDebugBox.classList.remove("is-visible");
+    mobileDebugText.textContent = "";
     return;
   }
 
@@ -971,6 +1004,21 @@ function getMobileConnectParams() {
   return { draftId, code, draftToken };
 }
 
+function hasCompleteMobileConnectParams() {
+  const { draftId, code, draftToken } = getMobileConnectParams();
+
+  return Boolean(isMobileModeFromUrl && draftId && /^\d{6}$/.test(code) && draftToken);
+}
+
+function isMobileWritableCloudSession(session = loadCloudSession()) {
+  return Boolean(
+    session?.cloudConnected &&
+    session?.source === "mobile" &&
+    session?.draftId &&
+    session?.draftToken
+  );
+}
+
 function renderQrToImage(image, text) {
   if (window.QRCode?.toDataURL) {
     window.QRCode.toDataURL(
@@ -998,6 +1046,42 @@ function updateMobileGuideLink() {
 
   if (mobileQrImage) {
     renderQrToImage(mobileQrImage, shareUrl);
+  }
+}
+
+function setMobileGuideConnectedMode(isConnected) {
+  const mobileGuideCard = mobileGuide?.querySelector(".mobile-guide-card");
+
+  if (mobileGuideCard) {
+    mobileGuideCard.classList.toggle("is-connected", isConnected);
+  }
+
+  setText("#mobileGuideTitle", isConnected ? t("mobileConnectedTitle") : t("mobileGuideTitle"));
+  setText(".mobile-guide-description", isConnected ? t("mobileConnectedDescription") : t("mobileGuideDescription"));
+  setText(".mobile-guide-note", isConnected ? t("mobileConnectedNote") : t("mobileGuideNote"));
+  setText("#mobileStartEditBtn", t("mobileStartEdit"));
+
+  const mobileGuideNote = document.querySelector(".mobile-guide-note");
+  if (mobileGuideNote) {
+    mobileGuideNote.hidden = isConnected;
+  }
+
+  if (mobileStartEditBtn) {
+    mobileStartEditBtn.hidden = !isConnected;
+  }
+
+  if (mobileCloudStatus && isConnected) {
+    mobileCloudStatus.textContent = "";
+  }
+}
+
+function updateMobileGuideState() {
+  const isConnectedGuide = !mobileGuideConnectionFailed &&
+    (hasCompleteMobileConnectParams() || isMobileWritableCloudSession());
+  setMobileGuideConnectedMode(isConnectedGuide);
+
+  if (!isConnectedGuide) {
+    updateMobileGuideLink();
   }
 }
 
@@ -1042,7 +1126,7 @@ function showView(viewName) {
   }
 
   if (viewName === "mobileGuide") {
-    updateMobileGuideLink();
+    updateMobileGuideState();
   }
 
   if (viewName === "editor" && isMobileModeFromUrl) {
@@ -1328,6 +1412,7 @@ function updateStaticLanguage() {
   setText("#mobileGuideTitle", t("mobileGuideTitle"));
   setText(".mobile-guide-description", t("mobileGuideDescription"));
   setText(".mobile-guide-note", t("mobileGuideNote"));
+  setText("#mobileStartEditBtn", t("mobileStartEdit"));
   setText("#copyLinkBtn", t("copyLink"));
   setText("#mobileGuideHomeBtn", t("mobileGuideHome"));
   setText(".connection-panel label", t("connectionCodeLabel"));
@@ -1335,6 +1420,7 @@ function updateStaticLanguage() {
   setText("#generateConnectionCodeBtn", t("generateConnectionCode"));
   setPlaceholder("connectionCodeInput", t("connectionCodePlaceholder"));
   setText("#backHomeBtn", t("backHome"));
+  updateMobileGuideState();
 
   const featureTexts = [
     ["featureImportTitle", "featureImportText"],
@@ -3234,16 +3320,19 @@ async function refreshFromCloudSession() {
       return;
     }
 
+    showDraftStatus(t("desktopSyncingMobile"));
     console.log("[DESKTOP SYNC] applying update");
     rememberCloudSnapshot(result);
     applyResumeData(result.resumeJson);
     saveResumeData();
     refreshResumeState();
+    showDraftStatus(t("desktopSynced"));
     console.log("[DESKTOP SYNC] preview refreshed");
   } catch (error) {
     if (isInvalidCloudSessionError(error)) {
       saveCloudSession(null);
     }
+    showErrorToast(t("desktopSyncFailed"));
   }
 }
 
@@ -3291,14 +3380,17 @@ async function pollDesktopReadOnlyCloudDraft() {
       return;
     }
 
+    showDraftStatus(t("desktopSyncingMobile"));
     console.log("[DESKTOP SYNC] applying update");
     rememberCloudSnapshot(result);
     applyResumeData(result.resumeJson);
     saveResumeData();
     refreshResumeState();
+    showDraftStatus(t("desktopSynced"));
     console.log("[DESKTOP SYNC] preview refreshed");
   } catch (error) {
     console.error("desktop cloud sync failed", error);
+    showErrorToast(t("desktopSyncFailed"));
   } finally {
     desktopCloudSyncInFlight = false;
   }
@@ -3348,11 +3440,13 @@ async function restoreCloudSessionOnInit() {
       return true;
     }
 
+    showDraftStatus(t("desktopSyncingMobile"));
     console.log("[DESKTOP SYNC] applying update");
     rememberCloudSnapshot(result);
     applyResumeData(result.resumeJson);
     saveResumeData();
     refreshResumeState();
+    showDraftStatus(t("desktopSynced"));
     console.log("[DESKTOP RESTORE] editor restored");
     window.setTimeout(() => {
       showToast(t("cloudDraftRestored"));
@@ -3399,6 +3493,8 @@ async function autoConnectMobileFromUrl() {
 
   if (!isMobileModeFromUrl || !draftId || !/^\d{6}$/.test(code)) {
     if (isMobileModeFromUrl && (draftId || code)) {
+      mobileGuideConnectionFailed = true;
+      updateMobileGuideState();
       mobileCloudStatus.textContent = t("connectCloudDraftFailed");
       showErrorToast(t("connectCloudDraftFailed"));
     }
@@ -3427,6 +3523,8 @@ async function autoConnectMobileFromUrl() {
       connectCloudDraftResponse: result,
       connectCloudDraftError: ""
     });
+    mobileGuideConnectionFailed = false;
+    updateMobileGuideState();
     mobileCloudStatus.textContent = t("connectedDesktop");
     showToast(t("connectedDesktop"));
     return true;
@@ -3438,6 +3536,8 @@ async function autoConnectMobileFromUrl() {
         status: error?.status || ""
       }
     });
+    mobileGuideConnectionFailed = true;
+    updateMobileGuideState();
     mobileCloudStatus.textContent = t("connectCloudDraftFailed");
     showErrorToast(t("connectCloudDraftFailed"));
     return false;
@@ -3952,6 +4052,11 @@ startBuildingBtn.addEventListener("click", () => {
   refreshFromCloudSession();
   showView("editor");
   startDesktopCloudPolling();
+});
+
+mobileStartEditBtn.addEventListener("click", () => {
+  loadCloudSession();
+  showView("editor");
 });
 
 openScanConnectBtn.addEventListener("click", () => {

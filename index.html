@@ -94,11 +94,15 @@
         <h1 id="mobileGuideTitle">手机访问，电脑编辑</h1>
         <p class="mobile-guide-description">复制下方链接，在电脑浏览器中打开，继续编辑你的简历</p>
         <p class="mobile-guide-note">也可以使用其他设备扫描二维码打开</p>
-        <div class="qr-frame">
+        <div id="mobileConnectedStatusCard" class="mobile-connected-status-card" aria-label="手机连接状态">
+          <p><strong>连接状态：</strong><span id="mobileConnectedStateText">已连接</span></p>
+          <p><strong>同步方式：</strong><span id="mobileSyncModeText">保存后同步到电脑</span></p>
+        </div>
+        <div class="qr-frame" data-mobile-fallback-only>
           <img id="mobileQrImage" alt="Resume-Building QR code">
         </div>
-        <p id="currentLinkText" class="current-link"></p>
-        <div class="cloud-code-panel" aria-label="云端连接码">
+        <p id="currentLinkText" class="current-link" data-mobile-fallback-only></p>
+        <div class="cloud-code-panel" aria-label="云端连接码" data-mobile-fallback-only>
           <button id="generateConnectionCodeBtn" class="landing-primary-btn" type="button">生成连接码</button>
           <p id="connectionCodeText" class="connection-code-text" aria-live="polite"></p>
           <p id="mobileCloudStatus" class="connection-status" aria-live="polite"></p>
@@ -108,8 +112,9 @@
           <pre id="mobileDebugText"></pre>
         </div>
         <div class="mobile-guide-actions">
-          <button id="copyLinkBtn" class="guide-secondary-btn" type="button">复制链接</button>
-          <button id="mobileGuideHomeBtn" class="landing-primary-btn" type="button">返回首页</button>
+          <button id="mobileStartEditBtn" class="landing-primary-btn" type="button">开始在手机编辑</button>
+          <button id="copyLinkBtn" class="guide-secondary-btn" type="button" data-mobile-fallback-only>复制链接</button>
+          <button id="mobileGuideHomeBtn" class="guide-secondary-btn" type="button">返回首页</button>
         </div>
       </div>
     </div>

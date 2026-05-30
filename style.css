@@ -300,6 +300,32 @@ body.view-editor .editor-view {
   line-height: 1.6;
 }
 
+.mobile-connected-status-card {
+  display: none;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  text-align: left;
+  color: var(--text);
+  background: #f8fafc;
+}
+
+.mobile-connected-status-card p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.mobile-guide-card.is-connected .mobile-connected-status-card {
+  display: grid;
+  gap: 4px;
+}
+
+.mobile-guide-card.is-connected [data-mobile-fallback-only] {
+  display: none;
+}
+
 .qr-frame {
   display: grid;
   place-items: center;
