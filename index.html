@@ -23,39 +23,28 @@
         </div>
       </nav>
 
-      <div class="landing-hero">
+      <div id="desktopLandingContent" class="desktop-landing-content" data-desktop-only>
+        <div class="landing-hero">
         <div class="landing-hero-copy">
           <h1 id="landingTitle">Resume-Building</h1>
           <p class="landing-subtitle">手机访问，电脑编辑，快速生成专业简历</p>
           <p class="landing-description">支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。</p>
           <div class="landing-action-row">
             <button id="startBuildingBtn" class="landing-primary-btn" type="button">开始创建简历</button>
-            <button id="copyDesktopLinkBtn" class="guide-secondary-btn mobile-direct-only" type="button" data-mobile-direct-only>复制链接到电脑打开</button>
-            <button id="openScanConnectBtn" class="guide-secondary-btn desktop-only" type="button" data-desktop-only>扫码连接手机</button>
-          </div>
-          <div class="mobile-sync-tip mobile-direct-only" data-mobile-direct-only>
-            如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。
+            <button id="openScanConnectBtn" class="guide-secondary-btn" type="button">扫码连接手机</button>
           </div>
           <div class="connection-panel" aria-label="输入连接码">
             <label for="connectionCodeInput">输入连接码</label>
-            <p class="mobile-connection-help mobile-direct-only" data-mobile-direct-only>输入电脑端或手机端生成的 6 位连接码继续草稿。</p>
             <div class="connection-input-row">
               <input id="connectionCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
               <button id="connectCloudDraftBtn" class="guide-secondary-btn" type="button">连接草稿</button>
             </div>
             <p id="connectionStatus" class="connection-status" aria-live="polite"></p>
           </div>
-          <div class="mobile-feature-tags mobile-direct-only" aria-label="核心流程" data-mobile-direct-only>
-            <span>导入</span>
-            <span>填写</span>
-            <span>保存</span>
-            <span>同步</span>
-            <span>PDF</span>
-          </div>
         </div>
       </div>
 
-      <section class="core-features desktop-only" aria-labelledby="coreFeaturesTitle" data-desktop-only>
+        <section class="core-features" aria-labelledby="coreFeaturesTitle">
         <div class="core-features-head">
           <h2 id="coreFeaturesTitle">核心功能</h2>
         </div>
@@ -85,7 +74,39 @@
             <p>手机访问时可复制链接到电脑继续编辑</p>
           </article>
         </div>
-      </section>
+        </section>
+      </div>
+
+      <div id="mobileDirectLandingContent" class="mobile-direct-landing-content" data-mobile-direct-only hidden>
+        <section class="mobile-direct-card" aria-labelledby="mobileDirectTitle">
+          <h1 id="mobileDirectTitle">手机填写，电脑继续编辑</h1>
+          <p id="mobileDirectDescription">你可以先在手机上填写简历内容，也可以复制链接到电脑继续编辑和导出 PDF。</p>
+          <div class="mobile-direct-actions">
+            <button id="mobileDirectStartBtn" class="landing-primary-btn" type="button">开始创建简历</button>
+            <button id="copyDesktopLinkBtn" class="guide-secondary-btn" type="button">复制链接到电脑打开</button>
+          </div>
+          <div class="mobile-sync-tip">
+            <strong>想让电脑实时同步？</strong>
+            <span>请在电脑端打开网站，点击“扫码连接手机”，再用手机扫码连接。</span>
+          </div>
+          <div class="connection-panel mobile-direct-code-panel" aria-label="输入连接码继续草稿">
+            <label for="mobileConnectionCodeInput">已有连接码？</label>
+            <p class="mobile-connection-help">输入 6 位连接码继续草稿</p>
+            <div class="connection-input-row">
+              <input id="mobileConnectionCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
+              <button id="mobileConnectCloudDraftBtn" class="guide-secondary-btn" type="button">连接草稿</button>
+            </div>
+            <p id="mobileLandingConnectionStatus" class="connection-status" aria-live="polite"></p>
+          </div>
+          <div class="mobile-feature-tags" aria-label="核心流程">
+            <span>导入</span>
+            <span>填写</span>
+            <span>保存</span>
+            <span>同步</span>
+            <span>PDF</span>
+          </div>
+        </section>
+      </div>
     </div>
   </section>
 
@@ -109,6 +130,11 @@
           <p><strong>连接状态：</strong><span id="mobileConnectedStateText">已连接</span></p>
           <p><strong>同步方式：</strong><span id="mobileSyncModeText">保存后同步到电脑</span></p>
         </div>
+        <ol class="mobile-connected-steps" aria-label="下一步">
+          <li>在手机填写内容</li>
+          <li>点击保存并同步</li>
+          <li>电脑端自动更新</li>
+        </ol>
         <div class="mobile-guide-actions">
           <button id="startMobileEditBtn" class="landing-primary-btn" type="button">开始在手机编辑</button>
           <button class="guide-secondary-btn" type="button" data-mobile-guide-home>返回首页</button>

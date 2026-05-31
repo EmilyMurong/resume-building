@@ -61,9 +61,12 @@ const downloadBtn = document.getElementById("downloadBtn");
 const languageZhBtn = document.getElementById("languageZhBtn");
 const languageEnBtn = document.getElementById("languageEnBtn");
 const landingPage = document.getElementById("landingPage");
+const desktopLandingContent = document.getElementById("desktopLandingContent");
+const mobileDirectLandingContent = document.getElementById("mobileDirectLandingContent");
 const mobileGuide = document.getElementById("mobileGuide");
 const editorView = document.getElementById("editorView");
 const startBuildingBtn = document.getElementById("startBuildingBtn");
+const mobileDirectStartBtn = document.getElementById("mobileDirectStartBtn");
 const openScanConnectBtn = document.getElementById("openScanConnectBtn");
 const scanConnectModal = document.getElementById("scanConnectModal");
 const closeScanConnectBtn = document.getElementById("closeScanConnectBtn");
@@ -88,6 +91,9 @@ const mobileDebugText = document.getElementById("mobileDebugText");
 const connectionCodeInput = document.getElementById("connectionCodeInput");
 const connectCloudDraftBtn = document.getElementById("connectCloudDraftBtn");
 const connectionStatus = document.getElementById("connectionStatus");
+const mobileConnectionCodeInput = document.getElementById("mobileConnectionCodeInput");
+const mobileConnectCloudDraftBtn = document.getElementById("mobileConnectCloudDraftBtn");
+const mobileLandingConnectionStatus = document.getElementById("mobileLandingConnectionStatus");
 const toastMessage = document.getElementById("toastMessage");
 const storageKey = "studentResumeBuilderData";
 const languageStorageKey = "resumeLanguage";
@@ -102,6 +108,7 @@ const translations = {
     landingDescription: "支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。",
     mobileLandingSubtitle: "手机填写，电脑继续编辑",
     mobileLandingDescription: "快速填写简历内容，也可以复制链接到电脑端继续编辑和导出 PDF。",
+    mobileDirectDescription: "你可以先在手机上填写简历内容，也可以复制链接到电脑继续编辑和导出 PDF。",
     copyDesktopLink: "复制链接到电脑打开",
     mobileLandingTip: "如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。",
     mobileConnectionCodeLabel: "已有连接码？",
@@ -316,6 +323,7 @@ const translations = {
     landingDescription: "Import TXT, DOCX, or PDF resumes, auto-fill your form, preview in real time, switch templates, and export as PDF.",
     mobileLandingSubtitle: "Fill on Phone, Continue on Desktop",
     mobileLandingDescription: "Quickly fill in resume content, or copy the link to continue editing and export PDF on desktop.",
+    mobileDirectDescription: "You can fill in resume content on your phone first, or copy the link to continue editing and export PDF on desktop.",
     copyDesktopLink: "Copy Link for Desktop",
     mobileLandingTip: "For live desktop sync, open the website on your computer and scan the QR code to connect your phone.",
     mobileConnectionCodeLabel: "Have a code?",
@@ -1156,8 +1164,9 @@ function applyLandingVariantCopy(isMobileDirect) {
   setText(".landing-subtitle", t(isMobileDirect ? "mobileLandingSubtitle" : "landingSubtitle"));
   setText(".landing-description", t(isMobileDirect ? "mobileLandingDescription" : "landingDescription"));
   setText(".connection-panel label", t(isMobileDirect ? "mobileConnectionCodeLabel" : "connectionCodeLabel"));
+  setText("#mobileDirectTitle", t("mobileLandingSubtitle"));
+  setText("#mobileDirectDescription", t("mobileDirectDescription"));
   setText("#copyDesktopLinkBtn", t("copyDesktopLink"));
-  setText(".mobile-landing-tip", t("mobileLandingTip"));
 }
 
 function renderLandingMode(viewName = currentView) {
@@ -1165,6 +1174,14 @@ function renderLandingMode(viewName = currentView) {
   const isMobileDirect = viewName === "landing" && details.finalMode === "mobile-direct-landing";
 
   document.body.classList.remove("mobile-direct-landing");
+  if (desktopLandingContent) {
+    desktopLandingContent.hidden = false;
+    desktopLandingContent.style.display = "";
+  }
+  if (mobileDirectLandingContent) {
+    mobileDirectLandingContent.hidden = true;
+    mobileDirectLandingContent.style.display = "none";
+  }
   document.querySelectorAll("[data-mobile-direct-only]").forEach((element) => {
     element.hidden = true;
     element.style.display = "none";
@@ -1176,6 +1193,14 @@ function renderLandingMode(viewName = currentView) {
 
   if (isMobileDirect) {
     document.body.classList.add("mobile-direct-landing");
+    if (desktopLandingContent) {
+      desktopLandingContent.hidden = true;
+      desktopLandingContent.style.display = "none";
+    }
+    if (mobileDirectLandingContent) {
+      mobileDirectLandingContent.hidden = false;
+      mobileDirectLandingContent.style.display = "";
+    }
     document.querySelectorAll("[data-mobile-direct-only]").forEach((element) => {
       element.hidden = false;
       element.style.display = "";
@@ -1515,6 +1540,7 @@ function updateStaticLanguage() {
   applyLandingVariantCopy(useMobileLandingCopy);
   setText("#startBuildingBtn", t("startBuilding"));
   setText("#copyDesktopLinkBtn", t("copyDesktopLink"));
+  setText("#mobileDirectStartBtn", t("startBuilding"));
   setText(".mobile-landing-tip", t("mobileLandingTip"));
   setText("#openScanConnectBtn", t("scanConnectPhone"));
   setText("#scanConnectTitle", t("scanConnectTitle"));
@@ -4060,32 +4086,36 @@ generateConnectionCodeBtn.addEventListener("click", async () => {
   }
 });
 
-connectCloudDraftBtn.addEventListener("click", async () => {
-  const code = connectionCodeInput.value.replace(/\D/g, "").slice(0, 6);
-  connectionCodeInput.value = code;
+async function connectCloudDraftFromInput(input, statusElement, button) {
+  const code = input.value.replace(/\D/g, "").slice(0, 6);
+  input.value = code;
 
   if (!/^\d{6}$/.test(code)) {
-    connectionStatus.textContent = t("enterConnectionCode");
+    statusElement.textContent = t("enterConnectionCode");
     showToast(t("enterConnectionCode"));
     return;
   }
 
-  connectionStatus.textContent = t("connectingCloudDraft");
-  connectCloudDraftBtn.disabled = true;
+  statusElement.textContent = t("connectingCloudDraft");
+  button.disabled = true;
 
   try {
     await connectCloudDraft(code);
-    connectionStatus.textContent = t("connectedCloudDraft");
+    statusElement.textContent = t("connectedCloudDraft");
     showToast(t("connectedCloudDraft"));
     showView("editor");
     startDesktopCloudPolling();
   } catch (error) {
     console.error("connect cloud draft failed", error);
-    connectionStatus.textContent = t("connectCloudDraftFailed");
+    statusElement.textContent = t("connectCloudDraftFailed");
     showErrorToast(t("connectCloudDraftFailed"));
   } finally {
-    connectCloudDraftBtn.disabled = false;
+    button.disabled = false;
   }
+}
+
+connectCloudDraftBtn.addEventListener("click", async () => {
+  await connectCloudDraftFromInput(connectionCodeInput, connectionStatus, connectCloudDraftBtn);
 });
 
 connectionCodeInput.addEventListener("input", () => {
@@ -4096,6 +4126,25 @@ connectionCodeInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     event.preventDefault();
     connectCloudDraftBtn.click();
+  }
+});
+
+mobileConnectCloudDraftBtn.addEventListener("click", async () => {
+  await connectCloudDraftFromInput(
+    mobileConnectionCodeInput,
+    mobileLandingConnectionStatus,
+    mobileConnectCloudDraftBtn
+  );
+});
+
+mobileConnectionCodeInput.addEventListener("input", () => {
+  mobileConnectionCodeInput.value = mobileConnectionCodeInput.value.replace(/\D/g, "").slice(0, 6);
+});
+
+mobileConnectionCodeInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    mobileConnectCloudDraftBtn.click();
   }
 });
 
@@ -4166,6 +4215,11 @@ startBuildingBtn.addEventListener("click", () => {
   refreshFromCloudSession();
   showView("editor");
   startDesktopCloudPolling();
+});
+
+mobileDirectStartBtn.addEventListener("click", () => {
+  loadCloudSession();
+  showView("editor");
 });
 
 startMobileEditBtn.addEventListener("click", () => {

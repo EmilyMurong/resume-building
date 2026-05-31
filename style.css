@@ -310,7 +310,7 @@ body.mobile-direct-landing .landing-page {
 body.mobile-direct-landing .landing-shell {
   width: min(460px, 100%);
   min-height: calc(100vh - 28px);
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto auto;
   align-content: start;
   gap: 14px;
 }
@@ -325,45 +325,42 @@ body.mobile-direct-landing .landing-nav .language-switch {
   justify-content: flex-end;
 }
 
-body.mobile-direct-landing .landing-hero {
-  align-items: start;
+body.mobile-direct-landing .mobile-direct-landing-content {
+  display: block !important;
+}
+
+.mobile-direct-card {
+  display: grid;
+  gap: 12px;
   border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 8px;
   padding: 18px;
   background: #ffffff;
   box-shadow: var(--shadow-soft);
 }
 
-body.mobile-direct-landing .landing-hero-copy {
-  max-width: none;
-  gap: 12px;
-}
-
-body.mobile-direct-landing .landing-hero h1 {
-  display: none;
-}
-
-body.mobile-direct-landing .landing-subtitle {
-  max-width: none;
+.mobile-direct-card h1 {
+  margin: 0;
   color: var(--heading);
   font-size: 28px;
   font-weight: 900;
   line-height: 1.16;
 }
 
-body.mobile-direct-landing .landing-description {
-  max-width: none;
+.mobile-direct-card > p {
+  margin: 0;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.6;
 }
 
-body.mobile-direct-landing .landing-action-row {
+.mobile-direct-actions {
   display: grid;
   gap: 10px;
-  margin-top: 2px;
 }
 
-body.mobile-direct-landing .landing-action-row .landing-primary-btn,
-body.mobile-direct-landing .landing-action-row .guide-secondary-btn,
+.mobile-direct-actions .landing-primary-btn,
+.mobile-direct-actions .guide-secondary-btn,
 body.mobile-direct-landing .connection-input-row .guide-secondary-btn {
   width: 100%;
 }
@@ -391,28 +388,29 @@ body.mobile-direct-landing .mobile-connection-help {
 body.mobile-direct-landing #openScanConnectBtn,
 body.mobile-direct-landing .core-features,
 body.mobile-direct-landing .feature-grid,
-body.mobile-direct-landing .core-features-head {
+body.mobile-direct-landing .core-features-head,
+body.mobile-direct-landing #desktopLandingContent {
   display: none !important;
 }
 
-body.mobile-direct-landing .connection-panel {
+.mobile-direct-code-panel {
   margin-top: 0;
   border-color: rgba(17, 24, 39, 0.08);
   padding: 12px;
   background: #f8fafc;
 }
 
-body.mobile-direct-landing .connection-panel label {
+.mobile-direct-code-panel label {
   color: var(--heading);
   font-size: 14px;
   font-weight: 850;
 }
 
-body.mobile-direct-landing .connection-input-row {
+.mobile-direct-code-panel .connection-input-row {
   grid-template-columns: 1fr;
 }
 
-body.mobile-direct-landing .connection-input-row input {
+.mobile-direct-code-panel .connection-input-row input {
   background: #ffffff;
 }
 
@@ -423,6 +421,22 @@ body.mobile-direct-landing .mobile-feature-tags {
 
 body.mobile-direct-landing .mobile-feature-tags span {
   padding: 5px 9px;
+  font-size: 12px;
+}
+
+body.mobile-direct-landing .language-switch,
+body.view-mobile-guide .mobile-guide-top .language-switch {
+  align-self: auto;
+  justify-content: flex-end;
+  width: auto;
+  gap: 4px;
+  padding: 3px;
+}
+
+body.mobile-direct-landing .language-switch-btn,
+body.view-mobile-guide .mobile-guide-top .language-switch-btn {
+  min-height: 30px;
+  padding: 0 9px;
   font-size: 12px;
 }
 
@@ -483,6 +497,45 @@ body.mobile-direct-landing .mobile-feature-tags span {
   margin: 0;
   font-size: 14px;
   line-height: 1.6;
+}
+
+.mobile-connected-steps {
+  display: grid;
+  width: 100%;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: connected-step;
+  text-align: left;
+}
+
+.mobile-connected-steps li {
+  counter-increment: connected-step;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--text);
+  background: #f8fafc;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.mobile-connected-steps li::before {
+  content: counter(connected-step);
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--primary);
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .qr-frame {
