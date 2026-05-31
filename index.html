@@ -33,9 +33,12 @@
             <button id="copyDesktopLinkBtn" class="guide-secondary-btn mobile-direct-only" type="button" data-mobile-direct-only>复制链接到电脑打开</button>
             <button id="openScanConnectBtn" class="guide-secondary-btn desktop-only" type="button" data-desktop-only>扫码连接手机</button>
           </div>
-          <p class="mobile-landing-tip mobile-direct-only" data-mobile-direct-only>如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。</p>
+          <div class="mobile-sync-tip mobile-direct-only" data-mobile-direct-only>
+            如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。
+          </div>
           <div class="connection-panel" aria-label="输入连接码">
             <label for="connectionCodeInput">输入连接码</label>
+            <p class="mobile-connection-help mobile-direct-only" data-mobile-direct-only>输入电脑端或手机端生成的 6 位连接码继续草稿。</p>
             <div class="connection-input-row">
               <input id="connectionCodeInput" type="text" inputmode="numeric" maxlength="6" placeholder="6 位数字">
               <button id="connectCloudDraftBtn" class="guide-secondary-btn" type="button">连接草稿</button>

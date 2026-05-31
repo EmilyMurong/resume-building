@@ -100,11 +100,11 @@ const translations = {
     langToggle: "EN",
     landingSubtitle: "手机访问，电脑编辑，快速生成专业简历",
     landingDescription: "支持 TXT、DOCX、PDF 简历导入，智能填充表单，实时预览，多模板切换和 PDF 导出。",
-    mobileLandingSubtitle: "手机端可快速填写简历内容，也可以复制链接到电脑继续编辑。",
-    mobileLandingDescription: "轻量填写、保存草稿，需要电脑实时同步时可在电脑端扫码连接手机。",
+    mobileLandingSubtitle: "手机填写，电脑继续编辑",
+    mobileLandingDescription: "快速填写简历内容，也可以复制链接到电脑端继续编辑和导出 PDF。",
     copyDesktopLink: "复制链接到电脑打开",
     mobileLandingTip: "如果你想让电脑实时同步，请在电脑端打开网站并扫描二维码连接手机。",
-    mobileConnectionCodeLabel: "已有连接码？输入 6 位连接码继续",
+    mobileConnectionCodeLabel: "已有连接码？",
     startBuilding: "开始创建简历",
     scanConnectPhone: "扫码连接手机",
     scanConnectTitle: "扫码连接手机",
@@ -314,11 +314,11 @@ const translations = {
     langToggle: "中文",
     landingSubtitle: "Mobile access, desktop editing, and smart resume export",
     landingDescription: "Import TXT, DOCX, or PDF resumes, auto-fill your form, preview in real time, switch templates, and export as PDF.",
-    mobileLandingSubtitle: "Quickly fill in resume content on mobile, or copy the link to continue on desktop.",
-    mobileLandingDescription: "Use mobile for lightweight editing and drafts. For live desktop sync, open the site on desktop and scan the QR code.",
+    mobileLandingSubtitle: "Fill on Phone, Continue on Desktop",
+    mobileLandingDescription: "Quickly fill in resume content, or copy the link to continue editing and export PDF on desktop.",
     copyDesktopLink: "Copy Link for Desktop",
     mobileLandingTip: "For live desktop sync, open the website on your computer and scan the QR code to connect your phone.",
-    mobileConnectionCodeLabel: "Have a code? Enter the 6-digit code to continue",
+    mobileConnectionCodeLabel: "Have a code?",
     startBuilding: "Start Building",
     scanConnectPhone: "Scan to Connect",
     scanConnectTitle: "Scan to Connect Phone",
@@ -685,8 +685,16 @@ function isLikelyMobileBrowser() {
   const platform = navigator.platform || "";
   const mobileUserAgent = /Android|iPhone|iPod|Windows Phone|Mobi/i.test(userAgent);
   const iPadDesktopMode = platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  const coarseTouch = Boolean(
+    navigator.maxTouchPoints > 0 &&
+    window.matchMedia?.("(pointer: coarse)")?.matches
+  );
+  const smallTouchScreen = Boolean(
+    navigator.maxTouchPoints > 0 &&
+    Math.min(window.screen.width || window.innerWidth, window.screen.height || window.innerHeight) <= 820
+  );
 
-  return mobileUserAgent || iPadDesktopMode;
+  return mobileUserAgent || iPadDesktopMode || coarseTouch || smallTouchScreen;
 }
 
 function isMobileDirectLanding() {
@@ -1144,6 +1152,14 @@ function getLandingModeDetails(viewName = currentView) {
   };
 }
 
+function applyLandingVariantCopy(isMobileDirect) {
+  setText(".landing-subtitle", t(isMobileDirect ? "mobileLandingSubtitle" : "landingSubtitle"));
+  setText(".landing-description", t(isMobileDirect ? "mobileLandingDescription" : "landingDescription"));
+  setText(".connection-panel label", t(isMobileDirect ? "mobileConnectionCodeLabel" : "connectionCodeLabel"));
+  setText("#copyDesktopLinkBtn", t("copyDesktopLink"));
+  setText(".mobile-landing-tip", t("mobileLandingTip"));
+}
+
 function renderLandingMode(viewName = currentView) {
   const details = getLandingModeDetails(viewName);
   const isMobileDirect = viewName === "landing" && details.finalMode === "mobile-direct-landing";
@@ -1151,21 +1167,26 @@ function renderLandingMode(viewName = currentView) {
   document.body.classList.remove("mobile-direct-landing");
   document.querySelectorAll("[data-mobile-direct-only]").forEach((element) => {
     element.hidden = true;
+    element.style.display = "none";
   });
   document.querySelectorAll("[data-desktop-only]").forEach((element) => {
     element.hidden = false;
+    element.style.display = "";
   });
 
   if (isMobileDirect) {
     document.body.classList.add("mobile-direct-landing");
     document.querySelectorAll("[data-mobile-direct-only]").forEach((element) => {
       element.hidden = false;
+      element.style.display = "";
     });
     document.querySelectorAll("[data-desktop-only]").forEach((element) => {
       element.hidden = true;
+      element.style.display = "none";
     });
   }
 
+  applyLandingVariantCopy(isMobileDirect);
   logLandingMode(details);
   return details;
 }
@@ -1489,9 +1510,9 @@ function updateStaticLanguage() {
     button.classList.toggle("is-active", isActive);
     button.setAttribute("aria-pressed", String(isActive));
   });
-  const useMobileLandingCopy = getLandingModeDetails(currentView).finalMode === "mobile-direct-landing";
-  setText(".landing-subtitle", t(useMobileLandingCopy ? "mobileLandingSubtitle" : "landingSubtitle"));
-  setText(".landing-description", t(useMobileLandingCopy ? "mobileLandingDescription" : "landingDescription"));
+  const landingMode = renderLandingMode(currentView);
+  const useMobileLandingCopy = landingMode.finalMode === "mobile-direct-landing";
+  applyLandingVariantCopy(useMobileLandingCopy);
   setText("#startBuildingBtn", t("startBuilding"));
   setText("#copyDesktopLinkBtn", t("copyDesktopLink"));
   setText(".mobile-landing-tip", t("mobileLandingTip"));
@@ -1509,7 +1530,6 @@ function updateStaticLanguage() {
   mobileGuideHomeBtns.forEach((button) => {
     button.textContent = t("mobileGuideHome");
   });
-  setText(".connection-panel label", t(useMobileLandingCopy ? "mobileConnectionCodeLabel" : "connectionCodeLabel"));
   setText("#connectCloudDraftBtn", t("connectCloudDraft"));
   setText("#generateConnectionCodeBtn", t("generateConnectionCode"));
   setPlaceholder("connectionCodeInput", t("connectionCodePlaceholder"));
